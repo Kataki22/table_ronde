@@ -1,0 +1,40 @@
+:root[data-theme="whatsapp-light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f0f2f5;
+  --bg-tertiary: #e9edef;
+  --bg-inverse: #111b21;
+  --bg-surface: #ffffff;
+  --bg-surface-dark: #f0f2f5;
+  --bg-hover: #f5f6f6;
+  --bg-active: #d1d7db;
+  --bg-input: #ffffff;
+
+  --text-primary: #111b21;
+  --text-secondary: #667781;
+  --text-tertiary: #8696a0;
+  --text-inverse: #ffffff;
+  --text-muted: #8696a0;
+  --text-disabled: #a8b3b9;
+
+  --border-light: #e9edef;
+  --border-medium: #d1d7db;
+  --border-dark: #c0c7cc;
+  --border-subtle: #e9edef;
+
+  --color-brand: #00a884;
+  --color-brand-dark: #008c6f;
+  --color-brand-light: #06cf9c;
+
+  --color-primary: #00a884;
+  --color-primary-dark: #008c6f;
+  --color-primary-light: #06cf9c;
+
+  --color-danger: #ea0038;
+  --color-success: #00a884;
+  --color-warning: #f7b928;
+
+  --color-online: #00a884;
+  --color-idle: #f7b928;
+  --color-dnd: #ea0038;
+  --color-offline: #8696a0;
+}

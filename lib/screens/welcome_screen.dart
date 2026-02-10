@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
+import '../utils/theme_extensions.dart';
 import 'dart:math' as math;
 
 class WelcomeScreen extends StatefulWidget {
@@ -9,14 +10,15 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateMixin {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with TickerProviderStateMixin {
   late AnimationController _floatingController;
   late AnimationController _fadeController;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _floatingController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -40,13 +42,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.themeColors.bgPrimary,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
               const Spacer(flex: 1),
-              
+
               // Animated Avatars Section
               SizedBox(
                 height: 280,
@@ -58,15 +61,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                     _buildFloatingBubble(1, 60, -70, 0.5),
                     _buildFloatingBubble(2, -90, 20, 1.0),
                     _buildFloatingBubble(3, 100, 40, 1.5),
-                    
+
                     // Center Avatars Cluster
                     _buildAvatarCluster(),
                   ],
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Welcome Text
               FadeTransition(
                 opacity: _fadeController,
@@ -74,21 +77,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                   children: [
                     Text(
                       'Bienvenue sur TableRonde !',
-                      style: AppTheme.headingLarge,
+                      style: AppTheme.headingLarge
+                          .copyWith(color: context.themeColors.textPrimary),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
                     Text(
                       'L\'écosystème complet pour votre\ncommunauté : social, finance, éducation et jeux !',
-                      style: AppTheme.bodyMedium,
+                      style: AppTheme.bodyMedium
+                          .copyWith(color: context.themeColors.textSecondary),
                       textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-              
+
               const Spacer(flex: 2),
-              
+
               // Buttons
               FadeTransition(
                 opacity: _fadeController,
@@ -102,9 +107,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                           Navigator.pushNamed(context, '/signup');
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryBlue,
+                          backgroundColor: context.themeColors.colorPrimary,
+                          foregroundColor: context.themeColors.textInverse,
                         ),
-                        child: Text('Commencer', style: AppTheme.buttonText),
+                        child: Text('Commencer',
+                            style: AppTheme.buttonText.copyWith(
+                                color: context.themeColors.textInverse)),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -115,7 +123,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
                       child: Text(
                         'Se connecter',
                         style: AppTheme.bodyLarge.copyWith(
-                          color: AppTheme.primaryBlue,
+                          color: context.themeColors.colorPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -135,7 +143,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
     return AnimatedBuilder(
       animation: _floatingController,
       builder: (context, child) {
-        final offset = math.sin((_floatingController.value * 2 * math.pi) + delay) * 10;
+        final offset =
+            math.sin((_floatingController.value * 2 * math.pi) + delay) * 10;
         return Transform.translate(
           offset: Offset(dx, dy + offset),
           child: Container(
@@ -143,7 +152,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
             height: 12,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppTheme.primaryBlue.withOpacity(0.3),
+              color: context.themeColors.colorPrimary.withOpacity(0.3),
             ),
           ),
         );
@@ -162,25 +171,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
         _buildAvatar('assets/avatars/avatar4.jpg', 60, 25, 48),
         _buildAvatar('assets/avatars/avatar5.jpg', -20, -80, 40),
         _buildAvatar('assets/avatars/avatar6.jpg', 0, 60, 44),
-        
+
         // Center Logo
         Container(
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            gradient: AppTheme.primaryGradient,
+            color: context.themeColors.colorPrimary,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryBlue.withOpacity(0.3),
+                color: context.themeColors.colorPrimary.withOpacity(0.3),
                 blurRadius: 20,
-                offset: const Offset(0, 5),
+                offset: Offset(0, 5),
               ),
             ],
           ),
-          child: const Icon(
+          child: Icon(
             Icons.chat_bubble_rounded,
-            color: Colors.white,
+            color: context.themeColors.textInverse,
             size: 40,
           ),
         ),
@@ -196,7 +205,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
+          border: Border.all(color: context.themeColors.bgSurface, width: 3),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.1),
@@ -209,7 +218,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with TickerProviderStateM
           backgroundColor: AppTheme.lightBlue.withOpacity(0.3),
           child: Icon(
             Icons.person,
-            color: AppTheme.primaryBlue,
+            color: context.themeColors.colorPrimary,
             size: size * 0.6,
           ),
         ),

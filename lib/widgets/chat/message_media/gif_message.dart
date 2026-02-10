@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/chat_model.dart';
+import '../../../utils/theme_extensions.dart';
 
 /// Widget to display a GIF message
 class GifMessage extends StatelessWidget {
@@ -35,10 +36,10 @@ class GifMessage extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               'GIF',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: context.themeColors.textPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 28,
                               ),
@@ -46,8 +47,9 @@ class GifMessage extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               message.text,
-                              style: const TextStyle(
-                                color: Colors.white70,
+                              style: TextStyle(
+                                color: context.themeColors.textSecondary
+                                    .withOpacity(0.7),
                                 fontSize: 14,
                               ),
                             ),
@@ -66,13 +68,13 @@ class GifMessage extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: context.themeColors.bgSurface.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text(
+                    child: Text(
                       'GIF',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: context.themeColors.textPrimary,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -85,10 +87,10 @@ class GifMessage extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     'GIF',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: context.themeColors.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 28,
                     ),
@@ -96,8 +98,8 @@ class GifMessage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     message.text,
-                    style: const TextStyle(
-                      color: Colors.white70,
+                    style: TextStyle(
+                      color: context.themeColors.textSecondary.withOpacity(0.7),
                       fontSize: 14,
                     ),
                   ),

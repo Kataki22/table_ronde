@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/theme_extensions.dart';
 
 class AnnouncementsFeed extends StatelessWidget {
   final List<Map<String, dynamic>> announcements;
@@ -66,10 +67,10 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: context.themeColors.bgSurface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppTheme.surfaceDark,
+          color: context.themeColors.bgSurfaceDark,
           width: 1,
         ),
       ),
@@ -82,7 +83,7 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
             decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: AppTheme.surfaceDark,
+                  color: context.themeColors.bgSurfaceDark,
                   width: 1,
                 ),
               ),
@@ -94,9 +95,11 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                   children: [
                     if (widget.announcement['badge'] != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: _getBadgeColor(widget.announcement['badge']),
+                          color: _getBadgeColor(
+                              context, widget.announcement['badge']),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -127,14 +130,15 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryBlue.withOpacity(0.2),
+                        color:
+                            context.themeColors.colorPrimary.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
                       child: Center(
                         child: Text(
                           widget.announcement['author']?.substring(0, 1) ?? 'A',
                           style: AppTheme.bodyMedium.copyWith(
-                            color: AppTheme.primaryBlue,
+                            color: context.themeColors.colorPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -148,14 +152,14 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                           Text(
                             widget.announcement['author'] ?? 'Admin Team',
                             style: AppTheme.bodyMedium.copyWith(
-                              color: Colors.white,
+                              color: context.themeColors.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           Text(
                             widget.announcement['date'] ?? '1 février 2024',
                             style: AppTheme.bodySmall.copyWith(
-                              color: AppTheme.textSecondary,
+                              color: context.themeColors.textSecondary,
                               fontSize: 12,
                             ),
                           ),
@@ -176,7 +180,7 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                 Text(
                   widget.announcement['content'] ?? '',
                   style: AppTheme.bodyMedium.copyWith(
-                    color: AppTheme.textPrimary,
+                    color: context.themeColors.textPrimary,
                     height: 1.6,
                   ),
                 ),
@@ -202,7 +206,7 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: AppTheme.surfaceDark,
+                  color: context.themeColors.bgSurfaceDark,
                   width: 1,
                 ),
               ),
@@ -214,7 +218,7 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
                   _isLiked ? Icons.favorite : Icons.favorite_outline,
                   '$_likeCount',
                   _toggleLike,
-                  color: _isLiked ? Colors.red : null,
+                  color: _isLiked ? context.themeColors.colorDanger : null,
                 ),
                 _buildActionButton(
                   Icons.comment_outlined,
@@ -246,14 +250,14 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
         children: [
           Icon(
             icon,
-            color: color ?? AppTheme.textSecondary,
+            color: color ?? context.themeColors.textSecondary,
             size: 18,
           ),
           const SizedBox(width: 6),
           Text(
             label,
             style: AppTheme.bodySmall.copyWith(
-              color: AppTheme.textSecondary,
+              color: context.themeColors.textSecondary,
               fontSize: 13,
             ),
           ),
@@ -262,16 +266,16 @@ class _AnnouncementCardState extends State<_AnnouncementCard> {
     );
   }
 
-  Color _getBadgeColor(String badge) {
+  Color _getBadgeColor(BuildContext context, String badge) {
     switch (badge.toUpperCase()) {
       case 'URGENT':
-        return Colors.red;
+        return context.themeColors.colorDanger;
       case 'IMPORTANT':
-        return Colors.orange;
+        return context.themeColors.colorWarning;
       case 'INFO':
-        return AppTheme.primaryBlue;
+        return context.themeColors.colorPrimary;
       default:
-        return AppTheme.primaryBlue;
+        return context.themeColors.colorPrimary;
     }
   }
 }
@@ -309,7 +313,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         top: 16,
       ),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: context.themeColors.bgSurface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       constraints: BoxConstraints(
@@ -329,7 +333,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           const SizedBox(height: 16),
           Text(
             'Commentaires',
-            style: AppTheme.headingSmall.copyWith(color: Colors.white),
+            style: AppTheme.headingSmall
+                .copyWith(color: context.themeColors.textPrimary),
           ),
           const SizedBox(height: 16),
           Expanded(
@@ -338,21 +343,25 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               itemBuilder: (context, index) => ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
-                  backgroundColor: AppTheme.surfaceDark,
-                  child: Icon(Icons.person, color: AppTheme.textSecondary),
+                  backgroundColor: context.themeColors.bgSurfaceDark,
+                  child: Icon(Icons.person,
+                      color: context.themeColors.textSecondary),
                 ),
                 title: Text(
                   'Membre',
-                  style: AppTheme.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: AppTheme.bodyMedium.copyWith(
+                      color: context.themeColors.textPrimary,
+                      fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
                   _comments[index],
-                  style: AppTheme.bodyMedium.copyWith(color: Colors.white70),
+                  style: AppTheme.bodyMedium.copyWith(
+                      color: context.themeColors.textPrimary.withOpacity(0.7)),
                 ),
               ),
             ),
           ),
-          const Divider(color: Colors.white24),
+          Divider(color: context.themeColors.borderLight),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
@@ -360,16 +369,18 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: context.themeColors.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Ajouter un commentaire...',
-                      hintStyle: TextStyle(color: AppTheme.textSecondary),
+                      hintStyle:
+                          TextStyle(color: context.themeColors.textSecondary),
                       border: InputBorder.none,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send, color: AppTheme.primaryBlue),
+                  icon:
+                      Icon(Icons.send, color: context.themeColors.colorPrimary),
                   onPressed: () {
                     if (_controller.text.trim().isNotEmpty) {
                       setState(() {

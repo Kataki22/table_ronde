@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
+import '../utils/theme_extensions.dart';
 import '../widgets/home/home_sidebar.dart';
 import '../widgets/home/home_right_sidebar.dart';
 import '../widgets/home/home_feed.dart';
@@ -19,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _subPageIndex = 0;
-  
+
   final List<Map<String, dynamic>> _feedPosts = [
     {
       'author': 'T4zor',
@@ -48,7 +49,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'username': '@alistairjr',
       'avatar': 'A',
       'time': '6h',
-      'content': 'Nouveau record ! Je suis maintenant #1 du classement Quiz Battle 🎮🏆',
+      'content':
+          'Nouveau record ! Je suis maintenant #1 du classement Quiz Battle 🎮🏆',
       'imageUrl': null,
       'likes': 67,
       'comments': 23,
@@ -62,7 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'badge': 'URGENT',
       'author': 'Admin Team',
       'date': '1 février 2024',
-      'content': 'Nous effectuerons une maintenance planifiée demain de 2h à 4h du matin. Tous les services seront temporairement indisponibles pendant cette période. Merci de votre compréhension.',
+      'content':
+          'Nous effectuerons une maintenance planifiée demain de 2h à 4h du matin. Tous les services seront temporairement indisponibles pendant cette période. Merci de votre compréhension.',
       'imageUrl': null,
       'likes': 45,
       'comments': 12,
@@ -72,7 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'badge': 'IMPORTANT',
       'author': 'Product Team',
       'date': '31 janvier 2024',
-      'content': 'Découvrez nos nouvelles fonctionnalités : messagerie améliorée, thèmes personnalisables, et bien plus encore ! Consultez notre guide pour en savoir plus.',
+      'content':
+          'Découvrez nos nouvelles fonctionnalités : messagerie améliorée, thèmes personnalisables, et bien plus encore ! Consultez notre guide pour en savoir plus.',
       'imageUrl': null,
       'likes': 93,
       'comments': 35,
@@ -82,7 +86,8 @@ class _HomeScreenState extends State<HomeScreen> {
       'badge': 'INFO',
       'author': 'Admin Team',
       'date': '30 janvier 2024',
-      'content': 'N\'oubliez pas de mettre à jour vos informations de profil avant la fin du mois pour continuer à profiter de tous nos services.',
+      'content':
+          'N\'oubliez pas de mettre à jour vos informations de profil avant la fin du mois pour continuer à profiter de tous nos services.',
       'imageUrl': null,
       'likes': 28,
       'comments': 8,
@@ -118,11 +123,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (isSmallScreen) {
       return Scaffold(
-        backgroundColor: AppTheme.backgroundDark,
+        backgroundColor: context.themeColors.bgPrimary,
         appBar: AppBar(
-          
-          backgroundColor: AppTheme.cardDark,
-          title: Text('TableRonde', style: AppTheme.headingMedium.copyWith(fontSize: 18)),
+          backgroundColor: context.themeColors.bgSurface,
+          title: Text('TableRonde',
+              style: AppTheme.headingMedium.copyWith(
+                  fontSize: 18, color: context.themeColors.textPrimary)),
           leading: Builder(
             builder: (context) => IconButton(
               icon: const Icon(Icons.menu),
@@ -143,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         drawer: Drawer(
-          backgroundColor: AppTheme.cardDark,
+          backgroundColor: context.themeColors.bgSurface,
           child: HomeSidebar(
             isMobile: true,
             selectedIndex: _subPageIndex,
@@ -154,14 +160,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         endDrawer: Drawer(
-          backgroundColor: AppTheme.cardDark,
+          backgroundColor: context.themeColors.bgSurface,
           child: HomeRightSidebar(isMobile: true),
         ),
         body: _buildBody(),
         floatingActionButton: FloatingActionButton(
           onPressed: _showCreatePostDialog,
-          backgroundColor: AppTheme.primaryBlue,
-          child: const Icon(Icons.add, color: Colors.white),
+          backgroundColor: context.themeColors.colorPrimary,
+          child: Icon(Icons.add, color: context.themeColors.textInverse),
         ),
       );
     }
@@ -193,8 +199,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 right: 24,
                 child: FloatingActionButton(
                   onPressed: _showCreatePostDialog,
-                  backgroundColor: AppTheme.primaryBlue,
-                  child: const Icon(Icons.add, color: Colors.white),
+                  backgroundColor: context.themeColors.colorPrimary,
+                  child:
+                      Icon(Icons.add, color: context.themeColors.textInverse),
                 ),
               ),
             ],
@@ -218,5 +225,4 @@ class _HomeScreenState extends State<HomeScreen> {
         return HomeFeed(posts: _feedPosts);
     }
   }
-
 }

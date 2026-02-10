@@ -16,7 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'title': 'Social',
       'icon': Icons.people_rounded,
       'color': AppTheme.primaryBlue,
-      'route': '/social',
+      'route': 'chat',
       'description': 'Messagerie & Communauté',
     },
     {
@@ -75,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: _buildBottomNav(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/social');
+          Navigator.pushNamed(context, '/chat');
         },
         backgroundColor: AppTheme.primaryBlue,
         child: const Icon(Icons.chat_bubble_rounded, color: Colors.white),
@@ -440,7 +440,7 @@ class _HomeScreenState extends State<HomeScreen> {
             case 0:
               break;
             case 1:
-              Navigator.pushNamed(context, '/social');
+              Navigator.pushNamed(context, '/chat');
               break;
             case 2:
               break;

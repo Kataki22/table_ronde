@@ -1,0 +1,51 @@
+:root[data-theme="telegram-dark"] {
+  --bg-primary: #212121;
+  --bg-secondary: #181818;
+  --bg-tertiary: #0e0e0e;
+  --bg-inverse: #ffffff;
+  --bg-surface: #181818;
+  --bg-surface-dark: #0e0e0e;
+  --bg-hover: #2b2b2b;
+  --bg-active: #353535;
+  --bg-input: #2b2b2b;
+
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
+  --text-tertiary: #707579;
+  --text-inverse: #0e0e0e;
+  --text-muted: #707579;
+  --text-disabled: #5a5a5a;
+
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --border-dark: rgba(255, 255, 255, 0.14);
+  --border-subtle: #0e0e0e;
+
+  --color-brand: #5288c1;
+  --color-brand-dark: #4a7aad;
+  --color-brand-light: #6ca0d1;
+
+  --color-primary: #5288c1;
+  --color-primary-dark: #4a7aad;
+  --color-primary-light: #6ca0d1;
+
+  --color-danger: #e53935;
+  --color-success: #00c73c;
+  --color-warning: #ff9800;
+
+  --color-online: #00c73c;
+  --color-idle: #ff9800;
+  --color-dnd: #e53935;
+  --color-offline: #707579;
+
+  --color-gray-50: #212121;
+  --color-gray-100: #1c1c1c;
+  --color-gray-200: #181818;
+  --color-gray-300: #aaaaaa;
+  --color-gray-400: #707579;
+  --color-gray-500: #353535;
+  --color-gray-600: #2b2b2b;
+  --color-gray-700: #181818;
+  --color-gray-800: #111111;
+  --color-gray-900: #0e0e0e;
+}

@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
+import '../../../utils/theme_extensions.dart';
 
 class PostCard extends StatefulWidget {
   final Map<String, dynamic> post;
@@ -49,9 +49,10 @@ class _PostCardState extends State<PostCard> {
       margin: const EdgeInsets.only(bottom: 1),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: context.themeColors.bgSurface,
         border: Border(
-          bottom: BorderSide(color: AppTheme.surfaceDark, width: 1),
+          bottom:
+              BorderSide(color: context.themeColors.bgSurfaceDark, width: 1),
         ),
       ),
       child: Column(
@@ -64,7 +65,7 @@ class _PostCardState extends State<PostCard> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue,
+                  color: context.themeColors.colorPrimary,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -87,7 +88,7 @@ class _PostCardState extends State<PostCard> {
                         Text(
                           widget.post['author'],
                           style: AppTheme.bodyLarge.copyWith(
-                            color: Colors.white,
+                            color: context.themeColors.textPrimary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -95,13 +96,13 @@ class _PostCardState extends State<PostCard> {
                         Icon(
                           Icons.verified,
                           size: 16,
-                          color: AppTheme.primaryBlue,
+                          color: context.themeColors.colorPrimary,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           widget.post['username'],
                           style: AppTheme.bodySmall.copyWith(
-                            color: AppTheme.textSecondary,
+                            color: context.themeColors.textSecondary,
                           ),
                         ),
                       ],
@@ -112,31 +113,31 @@ class _PostCardState extends State<PostCard> {
               Text(
                 widget.post['time'],
                 style: AppTheme.bodySmall.copyWith(
-                  color: AppTheme.textSecondary,
+                  color: context.themeColors.textSecondary,
                 ),
               ),
               const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(Icons.more_horiz),
-                color: AppTheme.textSecondary,
+                color: context.themeColors.textSecondary,
                 onPressed: () {},
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Post content
           Text(
             widget.post['content'],
             style: AppTheme.bodyMedium.copyWith(
-              color: AppTheme.textPrimary,
+              color: context.themeColors.textPrimary,
               height: 1.5,
             ),
           ),
-          
+
           if (imageUrl != null) ...[
             const SizedBox(height: 16),
             ClipRRect(
@@ -151,7 +152,8 @@ class _PostCardState extends State<PostCard> {
                           height: 200,
                           color: AppTheme.surfaceDark,
                           child: const Center(
-                            child: Icon(Icons.broken_image, size: 48, color: Colors.white24),
+                            child: Icon(Icons.broken_image,
+                                size: 48, color: Colors.white24),
                           ),
                         );
                       },
@@ -165,16 +167,17 @@ class _PostCardState extends State<PostCard> {
                           height: 200,
                           color: AppTheme.surfaceDark,
                           child: const Center(
-                            child: Icon(Icons.broken_image, size: 48, color: Colors.white24),
+                            child: Icon(Icons.broken_image,
+                                size: 48, color: Colors.white24),
                           ),
                         );
                       },
                     ),
             ),
           ],
-          
+
           const SizedBox(height: 16),
-          
+
           // Post actions
           Row(
             children: [
@@ -182,7 +185,7 @@ class _PostCardState extends State<PostCard> {
                 _isLiked ? Icons.favorite : Icons.favorite_border,
                 _likeCount.toString(),
                 onTap: _toggleLike,
-                color: _isLiked ? Colors.red : null,
+                color: _isLiked ? context.themeColors.colorDanger : null,
               ),
               const SizedBox(width: 24),
               _buildPostAction(
@@ -209,13 +212,14 @@ class _PostCardState extends State<PostCard> {
       onTap: onTap,
       child: Row(
         children: [
-          Icon(icon, size: 18, color: color ?? AppTheme.textSecondary),
+          Icon(icon,
+              size: 18, color: color ?? context.themeColors.textSecondary),
           if (count.isNotEmpty) ...[
             const SizedBox(width: 6),
             Text(
               count,
               style: AppTheme.bodySmall.copyWith(
-                color: AppTheme.textSecondary,
+                color: context.themeColors.textSecondary,
               ),
             ),
           ],
@@ -258,7 +262,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
         top: 16,
       ),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: context.themeColors.bgSurface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       constraints: BoxConstraints(
@@ -278,7 +282,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           const SizedBox(height: 16),
           Text(
             'Commentaires',
-            style: AppTheme.headingSmall.copyWith(color: Colors.white),
+            style: AppTheme.headingSmall
+                .copyWith(color: context.themeColors.textPrimary),
           ),
           const SizedBox(height: 16),
           Expanded(
@@ -287,21 +292,25 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               itemBuilder: (context, index) => ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
-                  backgroundColor: AppTheme.surfaceDark,
-                  child: Icon(Icons.person, color: AppTheme.textSecondary),
+                  backgroundColor: context.themeColors.bgSurfaceDark,
+                  child: Icon(Icons.person,
+                      color: context.themeColors.textSecondary),
                 ),
                 title: Text(
                   'Utilisateur',
-                  style: AppTheme.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: AppTheme.bodyMedium.copyWith(
+                      color: context.themeColors.textPrimary,
+                      fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
                   _comments[index],
-                  style: AppTheme.bodyMedium.copyWith(color: Colors.white70),
+                  style: AppTheme.bodyMedium.copyWith(
+                      color: context.themeColors.textPrimary.withOpacity(0.7)),
                 ),
               ),
             ),
           ),
-          const Divider(color: Colors.white24),
+          Divider(color: context.themeColors.borderLight),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
@@ -309,16 +318,18 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: context.themeColors.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Ajouter un commentaire...',
-                      hintStyle: TextStyle(color: AppTheme.textSecondary),
+                      hintStyle:
+                          TextStyle(color: context.themeColors.textSecondary),
                       border: InputBorder.none,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send, color: AppTheme.primaryBlue),
+                  icon:
+                      Icon(Icons.send, color: context.themeColors.colorPrimary),
                   onPressed: () {
                     if (_controller.text.trim().isNotEmpty) {
                       setState(() {

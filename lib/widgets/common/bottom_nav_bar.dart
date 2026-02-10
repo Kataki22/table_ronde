@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tableronde_app/utils/app_theme.dart';
+import 'package:tableronde_app/utils/theme_extensions.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
@@ -17,17 +17,19 @@ class CustomBottomNavBar extends StatelessWidget {
       currentIndex: selectedIndex,
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
-      backgroundColor: AppTheme.cardDark,
-      selectedItemColor: AppTheme.primaryBlue,
-      unselectedItemColor: AppTheme.textSecondary,
+      backgroundColor: context.themeColors.bgSurface,
+      selectedItemColor: context.themeColors.colorPrimary,
+      unselectedItemColor: context.themeColors.textSecondary,
       showSelectedLabels: true,
       showUnselectedLabels: true,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
         BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Chat'),
-        BottomNavigationBarItem(icon: Icon(Icons.attach_money), label: 'Finance'),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.attach_money), label: 'Finance'),
         BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Éduc'),
-        BottomNavigationBarItem(icon: Icon(Icons.sports_esports), label: 'Jeux'),
+        BottomNavigationBarItem(
+            icon: Icon(Icons.sports_esports), label: 'Jeux'),
       ],
     );
   }

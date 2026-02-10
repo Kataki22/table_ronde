@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../models/chat_model.dart';
+import '../../../utils/theme_extensions.dart';
 
 /// Widget to display an image message
 class ImageMessage extends StatelessWidget {
@@ -29,16 +30,17 @@ class ImageMessage extends StatelessWidget {
                     width: 220,
                     height: 180,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.35),
+                      color: context.themeColors.bgSurface.withOpacity(0.35),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.broken_image,
-                            color: Colors.white70,
+                            color: context.themeColors.textInverse
+                                .withOpacity(0.7),
                             size: 60,
                           ),
                           const SizedBox(height: 12),
@@ -46,8 +48,9 @@ class ImageMessage extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Text(
                               message.attachmentName ?? 'Photo',
-                              style: const TextStyle(
-                                color: Colors.white70,
+                              style: TextStyle(
+                                color: context.themeColors.textInverse
+                                    .withOpacity(0.7),
                                 fontSize: 14,
                               ),
                               textAlign: TextAlign.center,
@@ -64,21 +67,24 @@ class ImageMessage extends StatelessWidget {
               width: 220,
               height: 180,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.35),
+                color: context.themeColors.bgSurface.withOpacity(0.35),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.image, color: Colors.white70, size: 60),
+                    Icon(Icons.image,
+                        color: context.themeColors.textInverse.withOpacity(0.7),
+                        size: 60),
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       child: Text(
                         message.attachmentName ?? 'Photo',
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color:
+                              context.themeColors.textInverse.withOpacity(0.7),
                           fontSize: 14,
                         ),
                         textAlign: TextAlign.center,

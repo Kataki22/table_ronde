@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:tableronde_app/screens/chat_list_screen.dart';
-import 'package:tableronde_app/screens/education_screen.dart';
-import 'package:tableronde_app/screens/finance_screen.dart';
-import 'package:tableronde_app/screens/games_screen.dart';
+//import 'package:tableronde_app/screens/education_screen.dart';
+//import 'package:tableronde_app/screens/finance_screen.dart';
+//import 'package:tableronde_app/screens/games_screen.dart';
 import 'package:tableronde_app/screens/home_screen.dart';
 import 'package:tableronde_app/widgets/common/bottom_nav_bar.dart';
 import 'package:tableronde_app/utils/app_theme.dart';
+import 'package:tableronde_app/utils/theme_extensions.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -16,7 +17,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   int _selectedIndex = 0;
-  
+
   late TabController _financeTabController;
   late TabController _educationTabController;
   late TabController _gamesTabController;
@@ -33,9 +34,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     _screens = [
       const HomeScreen(),
       const ChatListScreen(),
-      FinanceScreen(tabController: _financeTabController),
-      EducationScreen(tabController: _educationTabController),
-      GamesScreen(tabController: _gamesTabController),
+      //FinanceScreen(tabController: _financeTabController),
+      //EducationScreen(tabController: _educationTabController),
+      //GamesScreen(tabController: _gamesTabController),
     ];
   }
 
@@ -75,20 +76,20 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
         return null;
       case 1: // ChatListScreen
         return null;
-      case 2: // FinanceScreen
-        return _buildFinanceAppBar();
+      /*case 2: // FinanceScreen
+        return //_buildFinanceAppBar();
       case 3: // EducationScreen
         return _buildEducationAppBar();
       case 4: // GamesScreen
         return _buildGamesAppBar();
       default:
-        return null;
+        return null;*/
     }
   }
 
-  AppBar _buildFinanceAppBar() {
+  /*AppBar _buildFinanceAppBar() {
     return AppBar(
-      backgroundColor: AppTheme.cardDark,
+      backgroundColor: context.themeColorsNoWatch.bgTertiary,
       automaticallyImplyLeading: false,
       title: Text(
         'Finance & Épargne',
@@ -101,20 +102,24 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(48),
         child: Container(
-          color: AppTheme.cardDark,
+          color: context.themeColorsNoWatch.bgTertiary,
           child: TabBar(
             controller: _financeTabController,
-            indicatorColor: AppTheme.successColor,
-            tabs: const [Tab(text: 'SOLDE'), Tab(text: 'TRANSACTIONS'), Tab(text: 'ÉPARGNE')],
+            indicatorColor: context.themeColorsNoWatch.colorSuccess,
+            tabs: const [
+              Tab(text: 'SOLDE'),
+              Tab(text: 'TRANSACTIONS'),
+              Tab(text: 'ÉPARGNE')
+            ],
           ),
         ),
       ),
     );
-  }
+  }*/
 
-  AppBar _buildEducationAppBar() {
+  /*AppBar _buildEducationAppBar() {
     return AppBar(
-      backgroundColor: AppTheme.cardDark,
+      backgroundColor: context.themeColorsNoWatch.bgTertiary,
       automaticallyImplyLeading: false,
       title: Text(
         'Espace Pédagogique',
@@ -127,20 +132,24 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(48),
         child: Container(
-          color: AppTheme.cardDark,
+          color: context.themeColorsNoWatch.bgTertiary,
           child: TabBar(
             controller: _educationTabController,
-            indicatorColor: AppTheme.warningColor,
-            tabs: const [Tab(text: 'DEVOIRS'), Tab(text: 'DOCUMENTS'), Tab(text: 'NOTES')],
+            indicatorColor: context.themeColorsNoWatch.colorWarning,
+            tabs: const [
+              Tab(text: 'DEVOIRS'),
+              Tab(text: 'DOCUMENTS'),
+              Tab(text: 'NOTES')
+            ],
           ),
         ),
       ),
     );
-  }
+  }*/
 
-  AppBar _buildGamesAppBar() {
+  /*AppBar _buildGamesAppBar() {
     return AppBar(
-      backgroundColor: AppTheme.cardDark,
+      backgroundColor: context.themeColorsNoWatch.bgTertiary,
       automaticallyImplyLeading: false,
       title: Text(
         'Espace Divertissement',
@@ -153,39 +162,43 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(48),
         child: Container(
-          color: AppTheme.cardDark,
+          color: context.themeColorsNoWatch.bgTertiary,
           child: TabBar(
             controller: _gamesTabController,
-            indicatorColor: Colors.purple,
-            tabs: const [Tab(text: 'CLASSEMENTS'), Tab(text: 'DÉFIS'), Tab(text: 'MULTIJOUEUR')],
+            indicatorColor: context.themeColorsNoWatch.colorBrand,
+            tabs: const [
+              Tab(text: 'CLASSEMENTS'),
+              Tab(text: 'DÉFIS'),
+              Tab(text: 'MULTIJOUEUR')
+            ],
           ),
         ),
       ),
     );
-  }
+  }*/
 
   Widget? _buildFloatingActionButton() {
     switch (_selectedIndex) {
       case 2: // FinanceScreen
         return FloatingActionButton.extended(
           onPressed: _showTransactionDialog,
-          backgroundColor: AppTheme.successColor,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('Transaction', style: TextStyle(color: Colors.white)),
+          backgroundColor: context.themeColorsNoWatch.colorSuccess,
+          icon: const Icon(Icons.add),
+          label: const Text('Transaction'),
         );
       case 3: // EducationScreen
         return FloatingActionButton.extended(
           onPressed: _showEducationAddDialog,
-          backgroundColor: AppTheme.warningColor,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('Ajouter', style: TextStyle(color: Colors.white)),
+          backgroundColor: context.themeColorsNoWatch.colorWarning,
+          icon: const Icon(Icons.add),
+          label: const Text('Ajouter'),
         );
       case 4: // GamesScreen
         return FloatingActionButton.extended(
           onPressed: _showNewGameDialog,
-          backgroundColor: Colors.purple,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('Nouveau jeu', style: TextStyle(color: Colors.white)),
+          backgroundColor: context.themeColorsNoWatch.colorBrand,
+          icon: const Icon(Icons.add),
+          label: const Text('Nouveau jeu'),
         );
       default:
         return null;
@@ -195,24 +208,42 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
   void _showTransactionDialog() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.surfaceDark,
+      backgroundColor: context.themeColorsNoWatch.bgSurface,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
         child: Container(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Nouvelle transaction', style: AppTheme.headingMedium.copyWith(color: Colors.white)),
+              Text('Nouvelle transaction', style: AppTheme.headingMedium),
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.send), label: const Text('Envoyer'), style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryBlue, padding: const EdgeInsets.symmetric(vertical: 16)))),
+                  Expanded(
+                      child: ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.send),
+                          label: const Text('Envoyer'),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryBlue,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16)))),
                   const SizedBox(width: 12),
-                  Expanded(child: ElevatedButton.icon(onPressed: () {}, icon: const Icon(Icons.call_received), label: const Text('Recevoir'), style: ElevatedButton.styleFrom(backgroundColor: AppTheme.successColor, padding: const EdgeInsets.symmetric(vertical: 16)))),
+                  Expanded(
+                      child: ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.call_received),
+                          label: const Text('Recevoir'),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.successColor,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16)))),
                 ],
               ),
             ],
@@ -226,17 +257,20 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surfaceDark,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Ajouter', style: AppTheme.headingMedium.copyWith(color: Colors.white)),
+            Text('Ajouter', style: AppTheme.headingMedium),
             const SizedBox(height: 24),
-            _buildDialogOption(Icons.assignment, 'Nouveau devoir', AppTheme.warningColor),
-            _buildDialogOption(Icons.upload_file, 'Importer document', AppTheme.primaryBlue),
+            _buildDialogOption(
+                Icons.assignment, 'Nouveau devoir', AppTheme.warningColor),
+            _buildDialogOption(
+                Icons.upload_file, 'Importer document', AppTheme.primaryBlue),
             _buildDialogOption(Icons.note_add, 'Créer une note', Colors.green),
           ],
         ),
@@ -248,14 +282,15 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
     showModalBottomSheet(
       context: context,
       backgroundColor: AppTheme.surfaceDark,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) => Container(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Nouveau jeu', style: AppTheme.headingMedium.copyWith(color: Colors.white)),
+            Text('Nouveau jeu', style: AppTheme.headingMedium),
             const SizedBox(height: 24),
             _buildDialogOption(Icons.psychology, 'Quiz rapide', Colors.blue),
             _buildDialogOption(Icons.people, 'Partie privée', Colors.purple),
@@ -272,16 +307,22 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(color: AppTheme.cardDark, borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(
+            color: context.themeColorsNoWatch.bgSecondary,
+            borderRadius: BorderRadius.circular(12)),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+              decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
-            Text(label, style: AppTheme.bodyLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
+            Text(label,
+                style:
+                    AppTheme.bodyLarge.copyWith(fontWeight: FontWeight.w600)),
           ],
         ),
       ),

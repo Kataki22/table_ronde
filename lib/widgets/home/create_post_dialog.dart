@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/theme_extensions.dart';
 
 class CreatePostDialog extends StatefulWidget {
   final Function(String, File?) onPostCreated;
@@ -34,7 +35,7 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: AppTheme.cardDark,
+      backgroundColor: context.themeColors.bgSurface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
@@ -46,7 +47,8 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: AppTheme.surfaceDark, width: 1),
+                  bottom: BorderSide(
+                      color: context.themeColors.bgSurfaceDark, width: 1),
                 ),
               ),
               child: Row(
@@ -54,11 +56,12 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
                 children: [
                   Text(
                     'Créer un post',
-                    style: AppTheme.headingSmall.copyWith(color: Colors.white),
+                    style: AppTheme.headingSmall
+                        .copyWith(color: context.themeColors.textPrimary),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close),
-                    color: AppTheme.textSecondary,
+                    color: context.themeColors.textSecondary,
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -77,14 +80,15 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryBlue.withOpacity(0.2),
+                          color:
+                              context.themeColors.colorPrimary.withOpacity(0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Center(
                           child: Text(
                             'V',
                             style: AppTheme.bodyMedium.copyWith(
-                              color: AppTheme.primaryBlue,
+                              color: context.themeColors.colorPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -97,14 +101,14 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
                           Text(
                             'Vous',
                             style: AppTheme.bodyMedium.copyWith(
-                              color: Colors.white,
+                              color: context.themeColors.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           Text(
                             '@vous',
                             style: AppTheme.bodySmall.copyWith(
-                              color: AppTheme.textSecondary,
+                              color: context.themeColors.textSecondary,
                               fontSize: 12,
                             ),
                           ),
@@ -117,27 +121,28 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
                   TextField(
                     controller: _contentController,
                     maxLines: 5,
-                    style: AppTheme.bodyMedium.copyWith(color: Colors.white),
+                    style: AppTheme.bodyMedium
+                        .copyWith(color: context.themeColors.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Quoi de neuf ? 🚀',
                       hintStyle: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: context.themeColors.textSecondary,
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: AppTheme.surfaceDark,
+                          color: context.themeColors.bgSurfaceDark,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: AppTheme.primaryBlue,
+                          color: context.themeColors.colorPrimary,
                           width: 2,
                         ),
                       ),
                       filled: true,
-                      fillColor: AppTheme.backgroundDark,
+                      fillColor: context.themeColors.bgPrimary,
                       contentPadding: const EdgeInsets.all(16),
                     ),
                   ),
@@ -213,7 +218,8 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
                           : ElevatedButton(
                               onPressed: _postContent,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppTheme.primaryBlue,
+                                backgroundColor:
+                                    context.themeColors.colorPrimary,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 24,
                                   vertical: 12,
@@ -247,12 +253,12 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppTheme.surfaceDark.withOpacity(0.5),
+          color: context.themeColors.bgSurfaceDark.withOpacity(0.5),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           icon,
-          color: AppTheme.primaryBlue,
+          color: context.themeColors.colorPrimary,
           size: 20,
         ),
       ),
@@ -262,7 +268,7 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
   void _selectImage() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.cardDark,
+      backgroundColor: context.themeColors.bgSurface,
       builder: (context) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -270,14 +276,16 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Sélectionner une image',
-              style: AppTheme.headingSmall.copyWith(color: Colors.white),
+              style: AppTheme.headingSmall
+                  .copyWith(color: context.themeColors.textPrimary),
             ),
           ),
           ListTile(
             leading: const Icon(Icons.image, color: Color(0xFF2563EB)),
             title: Text(
               'Galerie',
-              style: AppTheme.bodyMedium.copyWith(color: Colors.white),
+              style: AppTheme.bodyMedium
+                  .copyWith(color: context.themeColors.textPrimary),
             ),
             onTap: () {
               _pickImage(ImageSource.gallery);
@@ -288,7 +296,8 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
             leading: const Icon(Icons.camera_alt, color: Color(0xFF2563EB)),
             title: Text(
               'Caméra',
-              style: AppTheme.bodyMedium.copyWith(color: Colors.white),
+              style: AppTheme.bodyMedium
+                  .copyWith(color: context.themeColors.textPrimary),
             ),
             onTap: () {
               _pickImage(ImageSource.camera);
@@ -308,7 +317,7 @@ class _CreatePostDialogState extends State<CreatePostDialog> {
             'Veuillez entrer du contenu',
             style: AppTheme.bodyMedium.copyWith(color: Colors.white),
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: context.themeColors.colorDanger,
         ),
       );
       return;

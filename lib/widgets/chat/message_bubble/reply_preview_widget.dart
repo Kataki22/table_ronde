@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/chat_model.dart';
-import '../../../utils/app_theme.dart';
+import '../../../utils/theme_extensions.dart';
 
 /// Widget to display a preview of the message being replied to
 class ReplyPreviewWidget extends StatelessWidget {
@@ -36,11 +36,11 @@ class ReplyPreviewWidget extends StatelessWidget {
       margin: const EdgeInsets.only(left: 14, right: 14, top: 8),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: context.themeColors.bgSurface.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border(
           left: BorderSide(
-            color: AppTheme.primaryBlue,
+            color: context.themeColors.colorPrimary,
             width: 3,
           ),
         ),
@@ -50,8 +50,8 @@ class ReplyPreviewWidget extends StatelessWidget {
         children: [
           Text(
             repliedMessage.isSentByMe ? 'You' : chat.name,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: context.themeColors.textPrimary,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -63,8 +63,8 @@ class ReplyPreviewWidget extends StatelessWidget {
                 : (repliedMessage.text.isNotEmpty
                     ? repliedMessage.text
                     : _typeLabel(repliedMessage.type)),
-            style: const TextStyle(
-              color: Color.fromRGBO(255, 255, 255, 0.7),
+            style: TextStyle(
+              color: context.themeColors.textSecondary.withOpacity(0.7),
               fontSize: 13,
             ),
             maxLines: 2,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/theme_extensions.dart';
 
 class HomeTopBar extends StatefulWidget {
   final VoidCallback? onCreatePost;
-  
+
   const HomeTopBar({
     super.key,
     this.onCreatePost,
@@ -25,7 +26,7 @@ class _HomeTopBarState extends State<HomeTopBar> {
   void _showModuleSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.surfaceDark,
+      backgroundColor: context.themeColors.bgSurfaceDark,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -38,7 +39,8 @@ class _HomeTopBarState extends State<HomeTopBar> {
             children: [
               Text(
                 'Navigation Rapide',
-                style: AppTheme.headingMedium.copyWith(color: Colors.white),
+                style: AppTheme.headingMedium
+                    .copyWith(color: context.themeColors.textPrimary),
               ),
               const SizedBox(height: 24),
               _buildQuickNavItem(
@@ -46,15 +48,15 @@ class _HomeTopBarState extends State<HomeTopBar> {
                 Icons.people_rounded,
                 'Module Social',
                 'Conversations et communauté',
-                AppTheme.primaryBlue,
-                '/social',
+                context.themeColors.colorPrimary,
+                'chat',
               ),
               _buildQuickNavItem(
                 context,
                 Icons.account_balance_wallet_rounded,
                 'Module Finance',
                 'Transactions et épargne',
-                AppTheme.successColor,
+                context.themeColors.colorSuccess,
                 '/finance',
               ),
               _buildQuickNavItem(
@@ -62,7 +64,7 @@ class _HomeTopBarState extends State<HomeTopBar> {
                 Icons.school_rounded,
                 'Module Éducation',
                 'Devoirs et documents',
-                AppTheme.warningColor,
+                context.themeColors.colorWarning,
                 '/education',
               ),
               _buildQuickNavItem(
@@ -97,7 +99,7 @@ class _HomeTopBarState extends State<HomeTopBar> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppTheme.cardDark,
+          color: context.themeColors.bgSurface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withOpacity(0.3), width: 1),
         ),
@@ -119,14 +121,14 @@ class _HomeTopBarState extends State<HomeTopBar> {
                   Text(
                     title,
                     style: AppTheme.bodyLarge.copyWith(
-                      color: Colors.white,
+                      color: context.themeColors.textPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   Text(
                     subtitle,
                     style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textSecondary,
+                      color: context.themeColors.textSecondary,
                     ),
                   ),
                 ],
@@ -144,26 +146,29 @@ class _HomeTopBarState extends State<HomeTopBar> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppTheme.surfaceDark,
+          backgroundColor: context.themeColors.bgSurfaceDark,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
             'Rechercher',
-            style: AppTheme.headingMedium.copyWith(color: Colors.white),
+            style: AppTheme.headingMedium
+                .copyWith(color: context.themeColors.textPrimary),
           ),
           content: TextField(
             controller: _searchController,
             autofocus: true,
-            style: AppTheme.bodyMedium.copyWith(color: Colors.white),
+            style: AppTheme.bodyMedium
+                .copyWith(color: context.themeColors.textPrimary),
             decoration: InputDecoration(
               hintText: 'Rechercher des posts, membres...',
               hintStyle: AppTheme.bodyMedium.copyWith(
-                color: AppTheme.textSecondary,
+                color: context.themeColors.textSecondary,
               ),
-              prefixIcon: const Icon(Icons.search, color: AppTheme.primaryBlue),
+              prefixIcon:
+                  Icon(Icons.search, color: context.themeColors.colorPrimary),
               filled: true,
-              fillColor: AppTheme.cardDark,
+              fillColor: context.themeColors.bgSurface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -185,7 +190,7 @@ class _HomeTopBarState extends State<HomeTopBar> {
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryBlue,
+                backgroundColor: context.themeColors.colorPrimary,
               ),
               child: const Text('Rechercher'),
             ),
@@ -201,16 +206,17 @@ class _HomeTopBarState extends State<HomeTopBar> {
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
+        color: context.themeColors.bgSurface,
         border: Border(
-          bottom: BorderSide(color: AppTheme.surfaceDark, width: 1),
+          bottom:
+              BorderSide(color: context.themeColors.bgSurfaceDark, width: 1),
         ),
       ),
       child: Row(
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back),
-            color: AppTheme.textPrimary,
+            color: context.themeColors.textPrimary,
             onPressed: () {
               if (Navigator.canPop(context)) {
                 Navigator.pop(context);
@@ -220,32 +226,31 @@ class _HomeTopBarState extends State<HomeTopBar> {
           ),
           IconButton(
             icon: const Icon(Icons.dashboard_outlined),
-            color: AppTheme.textPrimary,
+            color: context.themeColors.textPrimary,
             onPressed: () => _showModuleSelector(context),
             tooltip: 'Modules',
           ),
           const SizedBox(width: 16),
-          
           if (MediaQuery.of(context).size.width > 1200) ...[
             _buildModuleButton(
               context,
               Icons.people_rounded,
               'Social',
-              AppTheme.primaryBlue,
-              '/social',
+              context.themeColors.colorPrimary,
+              '/chat',
             ),
             _buildModuleButton(
               context,
               Icons.account_balance_wallet_rounded,
               'Finance',
-              AppTheme.successColor,
+              context.themeColors.colorSuccess,
               '/finance',
             ),
             _buildModuleButton(
               context,
               Icons.school_rounded,
               'Éducation',
-              AppTheme.warningColor,
+              context.themeColors.colorWarning,
               '/education',
             ),
             _buildModuleButton(
@@ -256,29 +261,26 @@ class _HomeTopBarState extends State<HomeTopBar> {
               '/games',
             ),
           ],
-          
           const Spacer(),
-          
           IconButton(
             icon: const Icon(Icons.edit_note),
-            color: AppTheme.textPrimary,
+            color: context.themeColors.textPrimary,
             onPressed: widget.onCreatePost,
             tooltip: 'Créer un post',
           ),
           IconButton(
             icon: const Icon(Icons.favorite_border),
-            color: AppTheme.textPrimary,
+            color: context.themeColors.textPrimary,
             onPressed: () {},
             tooltip: 'Favoris',
           ),
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            color: AppTheme.textPrimary,
+            color: context.themeColors.textPrimary,
             onPressed: () {},
             tooltip: 'Notifications',
           ),
           const SizedBox(width: 12),
-          
           InkWell(
             onTap: () => _showSearchDialog(context),
             child: Container(
@@ -286,10 +288,10 @@ class _HomeTopBarState extends State<HomeTopBar> {
               height: 36,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: AppTheme.backgroundDark,
+                color: context.themeColors.bgPrimary,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: AppTheme.surfaceDark,
+                  color: context.themeColors.bgSurfaceDark,
                   width: 1,
                 ),
               ),
@@ -299,11 +301,12 @@ class _HomeTopBarState extends State<HomeTopBar> {
                     child: Text(
                       'Rechercher...',
                       style: AppTheme.bodySmall.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: context.themeColors.textSecondary,
                       ),
                     ),
                   ),
-                  Icon(Icons.search, color: AppTheme.textSecondary, size: 18),
+                  Icon(Icons.search,
+                      color: context.themeColors.textSecondary, size: 18),
                 ],
               ),
             ),

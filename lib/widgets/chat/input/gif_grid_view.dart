@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../services/tenor_gif_service.dart';
+import '../../../utils/theme_extensions.dart';
 
 /// Grid view for displaying GIFs from Tenor API
 class GifGridView extends StatefulWidget {
@@ -60,9 +61,10 @@ class _GifGridViewState extends State<GifGridView> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00A884)),
+          valueColor:
+              AlwaysStoppedAnimation<Color>(context.themeColors.colorPrimary),
         ),
       );
     }
@@ -75,7 +77,7 @@ class _GifGridViewState extends State<GifGridView> {
             Icon(
               Icons.gif_box_outlined,
               size: 64,
-              color: Colors.white.withOpacity(0.3),
+              color: context.themeColors.textPrimary.withOpacity(0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -83,7 +85,7 @@ class _GifGridViewState extends State<GifGridView> {
                   ? 'No trending GIFs found'
                   : 'No GIFs found for "$_currentQuery"',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+                color: context.themeColors.textPrimary.withOpacity(0.5),
                 fontSize: 15,
               ),
             ),
@@ -128,10 +130,10 @@ class _GifGridItem extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF1E2A30),
+          color: context.themeColors.bgSurface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: Colors.white.withOpacity(0.1),
+            color: context.themeColors.textPrimary.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -141,7 +143,7 @@ class _GifGridItem extends StatelessWidget {
             imageUrl: gif.previewUrl,
             fit: BoxFit.cover,
             placeholder: (context, url) => Container(
-              color: const Color(0xFF1E2A30),
+              color: context.themeColors.bgSurface,
               child: Center(
                 child: SizedBox(
                   width: 24,
@@ -149,27 +151,27 @@ class _GifGridItem extends StatelessWidget {
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white.withOpacity(0.3),
+                      context.themeColors.textPrimary.withOpacity(0.3),
                     ),
                   ),
                 ),
               ),
             ),
             errorWidget: (context, url, error) => Container(
-              color: const Color(0xFF1E2A30),
+              color: context.themeColors.bgSurface,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.broken_image,
-                    color: Colors.white.withOpacity(0.3),
+                    color: context.themeColors.textPrimary.withOpacity(0.3),
                     size: 32,
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     'GIF',
                     style: TextStyle(
-                      color: Colors.white54,
+                      color: context.themeColors.textSecondary,
                       fontSize: 10,
                     ),
                   ),

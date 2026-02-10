@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/chat_model.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/theme_extensions.dart';
 
 class UserProfileSheet extends StatelessWidget {
   final ChatModel chat;
@@ -44,9 +45,9 @@ class UserProfileSheet extends StatelessWidget {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: AppTheme.cardDark,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      decoration: BoxDecoration(
+        color: context.themeColors.bgSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
       child: Stack(
         children: [
@@ -79,7 +80,7 @@ class UserProfileSheet extends StatelessWidget {
               // ── Body ──────────────────────────────────────────────────
               Expanded(
                 child: Container(
-                  color: AppTheme.cardDark, // Dark background
+                  color: context.themeColors.bgSurface, // Dark background
                   padding: const EdgeInsets.fromLTRB(
                       16, 60, 16, 16), // Top padding for avatar
                   child: SingleChildScrollView(
@@ -89,8 +90,8 @@ class UserProfileSheet extends StatelessWidget {
                         // Name & Handle
                         Text(
                           chat.name,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: context.themeColors.textPrimary,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -98,8 +99,8 @@ class UserProfileSheet extends StatelessWidget {
                         if (chat.username != null)
                           Text(
                             chat.username!,
-                            style: const TextStyle(
-                              color: AppTheme.textSecondary,
+                            style: TextStyle(
+                              color: context.themeColors.textSecondary,
                               fontSize: 14,
                             ),
                           ),
@@ -113,7 +114,8 @@ class UserProfileSheet extends StatelessWidget {
                               // TODO: Navigate to full profile
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.chatBubbleIncoming,
+                              backgroundColor:
+                                  context.themeColors.bgSurfaceDark,
                               foregroundColor: Colors.white,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
@@ -133,7 +135,7 @@ class UserProfileSheet extends StatelessWidget {
                           width: double.infinity,
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppTheme.surfaceDark,
+                            color: context.themeColors.bgSurfaceDark,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
@@ -142,7 +144,8 @@ class UserProfileSheet extends StatelessWidget {
                               Text(
                                 'À PROPOS DE MOI',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: context.themeColors.textPrimary
+                                      .withOpacity(0.7),
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -150,8 +153,8 @@ class UserProfileSheet extends StatelessWidget {
                               const SizedBox(height: 8),
                               Text(
                                 chat.bio ?? 'Description de bio vide',
-                                style: const TextStyle(
-                                  color: AppTheme.textPrimary,
+                                style: TextStyle(
+                                  color: context.themeColors.textPrimary,
                                   fontSize: 13,
                                 ),
                               ),
@@ -159,7 +162,8 @@ class UserProfileSheet extends StatelessWidget {
                               Text(
                                 'CRÉÉ LE',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: context.themeColors.textPrimary
+                                      .withOpacity(0.7),
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -167,8 +171,8 @@ class UserProfileSheet extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 _formatDate(chat.createdAt),
-                                style: const TextStyle(
-                                  color: AppTheme.textPrimary,
+                                style: TextStyle(
+                                  color: context.themeColors.textPrimary,
                                   fontSize: 13,
                                 ),
                               ),
@@ -183,7 +187,7 @@ class UserProfileSheet extends StatelessWidget {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppTheme.surfaceDark,
+                              color: context.themeColors.bgSurfaceDark,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Column(
@@ -192,7 +196,8 @@ class UserProfileSheet extends StatelessWidget {
                                 Text(
                                   'ACTIVITÉ ACTUELLE',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: context.themeColors.textPrimary
+                                        .withOpacity(0.7),
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
                                   ),
@@ -200,14 +205,16 @@ class UserProfileSheet extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    const Icon(Icons.gamepad,
-                                        color: Colors.white, size: 20),
+                                    Icon(Icons.gamepad,
+                                        color: context.themeColors.textPrimary,
+                                        size: 20),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         chat.currentActivity!,
-                                        style: const TextStyle(
-                                          color: Colors.white,
+                                        style: TextStyle(
+                                          color:
+                                              context.themeColors.textPrimary,
                                           fontSize: 13,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -234,8 +241,8 @@ class UserProfileSheet extends StatelessWidget {
               children: [
                 Container(
                   padding: const EdgeInsets.all(6), // Border thickness
-                  decoration: const BoxDecoration(
-                    color: AppTheme.cardDark, // Match background
+                  decoration: BoxDecoration(
+                    color: context.themeColors.bgSurface, // Match background
                     shape: BoxShape.circle,
                   ),
                   child: CircleAvatar(
@@ -244,8 +251,9 @@ class UserProfileSheet extends StatelessWidget {
                     backgroundImage: _getImageProvider(chat.avatarUrl),
                     child: chat.avatarUrl == null || chat.avatarUrl!.isEmpty
                         ? Text(chat.name[0],
-                            style: const TextStyle(
-                                fontSize: 32, color: Colors.white))
+                            style: TextStyle(
+                                fontSize: 32,
+                                color: context.themeColors.textPrimary))
                         : null,
                   ),
                 ),
@@ -256,14 +264,14 @@ class UserProfileSheet extends StatelessWidget {
                     child: Container(
                       width: 28,
                       height: 28,
-                      decoration: const BoxDecoration(
-                        color: AppTheme.cardDark, // Border
+                      decoration: BoxDecoration(
+                        color: context.themeColors.bgSurface, // Border
                         shape: BoxShape.circle,
                       ),
                       padding: const EdgeInsets.all(4),
                       child: Container(
-                        decoration: const BoxDecoration(
-                          color: AppTheme.onlineGreen,
+                        decoration: BoxDecoration(
+                          color: context.themeColors.colorSuccess,
                           shape: BoxShape.circle,
                         ),
                       ),

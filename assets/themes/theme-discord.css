@@ -1,0 +1,69 @@
+:root[data-theme="discord"] {
+  --bg-primary: #36393f;
+  --bg-secondary: #2f3136;
+  --bg-tertiary: #202225;
+  --bg-inverse: #ffffff;
+  --bg-surface: #313338;
+  --bg-surface-dark: #1e1f22;
+  --bg-hover: #40444b;
+  --bg-active: #4f545c;
+  --bg-input: #40444b;
+
+  --text-primary: #dcddde;
+  --text-secondary: #b9bbbe;
+  --text-tertiary: #72767d;
+  --text-inverse: #111b21;
+  --text-muted: #72767d;
+  --text-disabled: #6d6f78;
+
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.08);
+  --border-dark: rgba(255, 255, 255, 0.12);
+  --border-subtle: #26272b;
+
+  --color-brand: #5865f2;
+  --color-brand-dark: #4752c4;
+  --color-brand-light: #7983f5;
+
+  --color-primary: #5865f2;
+  --color-primary-dark: #4752c4;
+  --color-primary-light: #7983f5;
+
+  --color-secondary: #4f545c;
+  --color-secondary-dark: #40444b;
+  --color-secondary-light: #72767d;
+
+  --color-success: #3ba55d;
+  --color-success-dark: #2d7d46;
+  --color-success-light: #4bd37a;
+
+  --color-warning: #faa61a;
+  --color-warning-dark: #c27f13;
+  --color-warning-light: #ffbf4a;
+
+  --color-danger: #ed4245;
+  --color-danger-dark: #c03537;
+  --color-danger-light: #ff6b6e;
+
+  --color-info: #3390ec;
+  --color-info-dark: #2b7cd3;
+  --color-info-light: #4aa3ff;
+
+  --color-online: #23a559;
+  --color-idle: #faa61a;
+  --color-dnd: #f23f43;
+  --color-offline: #80848e;
+
+  --color-white: #ffffff;
+
+  --color-gray-50: #36393f;
+  --color-gray-100: #32353b;
+  --color-gray-200: #2f3136;
+  --color-gray-300: #b9bbbe;
+  --color-gray-400: #72767d;
+  --color-gray-500: #4f545c;
+  --color-gray-600: #40444b;
+  --color-gray-700: #2f3136;
+  --color-gray-800: #292b2f;
+  --color-gray-900: #202225;
+}

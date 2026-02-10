@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/theme_extensions.dart';
 
 class MembersList extends StatelessWidget {
   const MembersList({super.key});
@@ -65,19 +66,21 @@ class MembersList extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: AppTheme.cardDark,
+            color: context.themeColors.bgSurface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppTheme.surfaceDark),
+            border: Border.all(color: context.themeColors.bgSurfaceDark),
           ),
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: Stack(
               children: [
                 CircleAvatar(
                   backgroundColor: member['color'],
                   child: Text(
                     member['avatar'],
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (member['isOnline'])
@@ -88,9 +91,10 @@ class MembersList extends StatelessWidget {
                       width: 12,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: context.themeColors.colorSuccess,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppTheme.cardDark, width: 2),
+                        border: Border.all(
+                            color: context.themeColors.bgSurface, width: 2),
                       ),
                     ),
                   ),
@@ -101,22 +105,24 @@ class MembersList extends StatelessWidget {
                 Text(
                   member['name'],
                   style: AppTheme.bodyMedium.copyWith(
-                    color: Colors.white,
+                    color: context.themeColors.textPrimary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(width: 8),
                 if (member['role'] != 'Membre')
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: _getRoleColor(member['role']).withOpacity(0.2),
+                      color: _getRoleColor(context, member['role'])
+                          .withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       member['role'],
                       style: TextStyle(
-                        color: _getRoleColor(member['role']),
+                        color: _getRoleColor(context, member['role']),
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -126,18 +132,21 @@ class MembersList extends StatelessWidget {
             ),
             subtitle: Text(
               member['username'],
-              style: AppTheme.bodySmall.copyWith(color: AppTheme.textSecondary),
+              style: AppTheme.bodySmall
+                  .copyWith(color: context.themeColors.textSecondary),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.message_outlined, color: AppTheme.textSecondary),
+                  icon: Icon(Icons.message_outlined,
+                      color: context.themeColors.textSecondary),
                   onPressed: () {},
                   tooltip: 'Message',
                 ),
                 IconButton(
-                  icon: const Icon(Icons.person_outline, color: AppTheme.textSecondary),
+                  icon: Icon(Icons.person_outline,
+                      color: context.themeColors.textSecondary),
                   onPressed: () {},
                   tooltip: 'Profil',
                 ),
@@ -149,16 +158,16 @@ class MembersList extends StatelessWidget {
     );
   }
 
-  Color _getRoleColor(String role) {
+  Color _getRoleColor(BuildContext context, String role) {
     switch (role) {
       case 'Admin':
-        return Colors.redAccent;
+        return context.themeColors.colorDanger;
       case 'Modérateur':
-        return Colors.greenAccent;
+        return context.themeColors.colorSuccess;
       case 'Nouveau':
-        return Colors.grey;
+        return context.themeColors.textSecondary;
       default:
-        return AppTheme.primaryBlue;
+        return context.themeColors.colorPrimary;
     }
   }
 }

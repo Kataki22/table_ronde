@@ -1,0 +1,40 @@
+:root[data-theme="telegram-light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f4f5;
+  --bg-tertiary: #e4e4e7;
+  --bg-inverse: #0e0e0e;
+  --bg-surface: #ffffff;
+  --bg-surface-dark: #f4f4f5;
+  --bg-hover: #f0f0f1;
+  --bg-active: #d4d4d8;
+  --bg-input: #ffffff;
+
+  --text-primary: #000000;
+  --text-secondary: #707579;
+  --text-tertiary: #a8a8a8;
+  --text-inverse: #ffffff;
+  --text-muted: #a8a8a8;
+  --text-disabled: #c0c0c0;
+
+  --border-light: #e4e4e7;
+  --border-medium: #d4d4d8;
+  --border-dark: #c4c4c8;
+  --border-subtle: #e4e4e7;
+
+  --color-brand: #3390ec;
+  --color-brand-dark: #2b7cd3;
+  --color-brand-light: #4aa3ff;
+
+  --color-primary: #3390ec;
+  --color-primary-dark: #2b7cd3;
+  --color-primary-light: #4aa3ff;
+
+  --color-danger: #e53935;
+  --color-success: #00c73c;
+  --color-warning: #ff9800;
+
+  --color-online: #00c73c;
+  --color-idle: #ff9800;
+  --color-dnd: #e53935;
+  --color-offline: #a8a8a8;
+}

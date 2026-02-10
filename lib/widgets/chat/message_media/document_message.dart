@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/chat_model.dart';
+import '../../../utils/theme_extensions.dart';
 
 /// Widget to display a document/file message
 class DocumentMessage extends StatelessWidget {
@@ -23,8 +24,8 @@ class DocumentMessage extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isSentByMe
-            ? Colors.white.withOpacity(0.1)
-            : Colors.black.withOpacity(0.2),
+            ? context.themeColors.bgSurface.withOpacity(0.1)
+            : context.themeColors.bgSurface.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -40,8 +41,8 @@ class DocumentMessage extends StatelessWidget {
             child: Center(
               child: Text(
                 fileExt.length > 4 ? fileExt.substring(0, 4) : fileExt,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: context.themeColors.textPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -55,8 +56,8 @@ class DocumentMessage extends StatelessWidget {
               children: [
                 Text(
                   fileName,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: context.themeColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -67,7 +68,7 @@ class DocumentMessage extends StatelessWidget {
                 Text(
                   _getFileSize(message.attachmentUrl),
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: context.themeColors.textSecondary.withOpacity(0.6),
                     fontSize: 12,
                   ),
                 ),
@@ -77,7 +78,7 @@ class DocumentMessage extends StatelessWidget {
           const SizedBox(width: 8),
           Icon(
             Icons.download,
-            color: Colors.white.withOpacity(0.7),
+            color: context.themeColors.textSecondary.withOpacity(0.7),
             size: 20,
           ),
         ],

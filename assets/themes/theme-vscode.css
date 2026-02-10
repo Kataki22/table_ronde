@@ -1,0 +1,51 @@
+:root[data-theme="vscode"] {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2d2d30;
+  --bg-inverse: #ffffff;
+  --bg-surface: #252526;
+  --bg-surface-dark: #1e1e1e;
+  --bg-hover: #2a2d2e;
+  --bg-active: #37373d;
+  --bg-input: #2d2d30;
+
+  --text-primary: #cccccc;
+  --text-secondary: #9d9d9d;
+  --text-tertiary: #6e6e6e;
+  --text-inverse: #1e1e1e;
+  --text-muted: #6e6e6e;
+  --text-disabled: #5a5a5a;
+
+  --border-light: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --border-dark: rgba(255, 255, 255, 0.14);
+  --border-subtle: #3e3e42;
+
+  --color-brand: #007acc;
+  --color-brand-dark: #1a85c6;
+  --color-brand-light: #4aa3ff;
+
+  --color-primary: #007acc;
+  --color-primary-dark: #1a85c6;
+  --color-primary-light: #4aa3ff;
+
+  --color-danger: #f48771;
+  --color-success: #4ec9b0;
+  --color-warning: #dcdcaa;
+
+  --color-online: #4ec9b0;
+  --color-idle: #dcdcaa;
+  --color-dnd: #f48771;
+  --color-offline: #6e6e6e;
+
+  --color-gray-50: #252526;
+  --color-gray-100: #2d2d30;
+  --color-gray-200: #1e1e1e;
+  --color-gray-300: #9d9d9d;
+  --color-gray-400: #6e6e6e;
+  --color-gray-500: #3e3e42;
+  --color-gray-600: #37373d;
+  --color-gray-700: #252526;
+  --color-gray-800: #1e1e1e;
+  --color-gray-900: #1a1a1a;
+}

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-import '../../../../utils/app_theme.dart';
+import '../../../../utils/theme_extensions.dart';
 import '../input/gif_grid_view.dart';
 import '../input/sticker_grid_view.dart';
 import '../../../services/tenor_gif_service.dart';
@@ -73,7 +73,7 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
     return Container(
       height: MediaQuery.of(context).size.height * 0.6,
       decoration: BoxDecoration(
-        color: AppTheme.surfaceDark,
+        color: context.themeColors.bgSurfaceDark,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
         boxShadow: [
           BoxShadow(
@@ -100,20 +100,20 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
                     emojiViewConfig: EmojiViewConfig(
                       columns: 8,
                       emojiSizeMax: 32 * 1.0,
-                      backgroundColor: AppTheme.surfaceDark,
+                      backgroundColor: context.themeColors.bgSurfaceDark,
                       buttonMode: ButtonMode.MATERIAL,
                     ),
-                    categoryViewConfig: const CategoryViewConfig(
+                    categoryViewConfig: CategoryViewConfig(
                       initCategory: Category.RECENT,
-                      backgroundColor: AppTheme.surfaceDark,
-                      indicatorColor: AppTheme.primaryBlue,
-                      iconColor: AppTheme.textSecondary,
-                      iconColorSelected: AppTheme.primaryBlue,
-                      backspaceColor: AppTheme.primaryBlue,
+                      backgroundColor: context.themeColors.bgSurfaceDark,
+                      indicatorColor: context.themeColors.colorPrimary,
+                      iconColor: context.themeColors.textSecondary,
+                      iconColorSelected: context.themeColors.colorPrimary,
+                      backspaceColor: context.themeColors.colorPrimary,
                     ),
-                    skinToneConfig: const SkinToneConfig(
-                      dialogBackgroundColor: Colors.white,
-                      indicatorColor: Colors.grey,
+                    skinToneConfig: SkinToneConfig(
+                      dialogBackgroundColor: context.themeColors.bgSurface,
+                      indicatorColor: context.themeColors.textSecondary,
                     ),
                   ),
                 ),
@@ -143,8 +143,9 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppTheme.cardDark)),
+      decoration: BoxDecoration(
+        border:
+            Border(bottom: BorderSide(color: context.themeColors.bgSurface)),
       ),
       child: Column(
         children: [
@@ -153,27 +154,29 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
             Container(
               height: 40,
               decoration: BoxDecoration(
-                color: AppTheme.cardDark,
+                color: context.themeColors.bgSurface,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: context.themeColors.textPrimary),
                 decoration: InputDecoration(
                   hintText: _tabController.index == 1
                       ? 'Search GIFs'
                       : 'Search Stickers',
-                  hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                  hintStyle: TextStyle(
+                      color: context.themeColors.textPrimary.withOpacity(0.3)),
                   prefixIcon: Icon(
                     Icons.search,
-                    color: Colors.white.withOpacity(0.3),
+                    color: context.themeColors.textPrimary.withOpacity(0.3),
                     size: 20,
                   ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
                           icon: const Icon(Icons.close, size: 18),
-                          color: Colors.white.withOpacity(0.3),
+                          color:
+                              context.themeColors.textPrimary.withOpacity(0.3),
                           onPressed: () {
                             _searchController.clear();
                             _onSearchChanged('');
@@ -191,10 +194,11 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
           // Tab Bar
           TabBar(
             controller: _tabController,
-            indicatorColor: AppTheme.primaryBlue,
+            indicatorColor: context.themeColors.colorPrimary,
             indicatorWeight: 3,
-            labelColor: AppTheme.primaryBlue,
-            unselectedLabelColor: Colors.white.withOpacity(0.5),
+            labelColor: context.themeColors.colorPrimary,
+            unselectedLabelColor:
+                context.themeColors.textPrimary.withOpacity(0.5),
             labelStyle: const TextStyle(fontWeight: FontWeight.bold),
             onTap: (index) {
               // FocusScope.of(context).unfocus(); // Optional
@@ -213,8 +217,8 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
   Widget _buildCategoryBar() {
     return Container(
       height: 48,
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppTheme.cardDark)),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: context.themeColors.bgSurface)),
       ),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -230,16 +234,20 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 border: isSelected
-                    ? const Border(
-                        top: BorderSide(color: AppTheme.primaryBlue, width: 2))
+                    ? Border(
+                        top: BorderSide(
+                            color: context.themeColors.colorPrimary, width: 2))
                     : null,
-                color: isSelected ? AppTheme.cardDark : Colors.transparent,
+                color: isSelected
+                    ? context.themeColors.bgSurface
+                    : Colors.transparent,
               ),
               child: Text(
                 category,
                 style: TextStyle(
-                  color:
-                      isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+                  color: isSelected
+                      ? context.themeColors.textPrimary
+                      : context.themeColors.textPrimary.withOpacity(0.5),
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   fontSize: 13,
                 ),

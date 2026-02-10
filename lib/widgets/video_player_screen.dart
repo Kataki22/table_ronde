@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import '../utils/app_theme.dart';
+import '../utils/theme_extensions.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final String videoPath;
@@ -149,8 +149,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                                 VideoProgressIndicator(
                                   _controller,
                                   allowScrubbing: true,
-                                  colors: const VideoProgressColors(
-                                    playedColor: AppTheme.primaryBlue,
+                                  colors: VideoProgressColors(
+                                    playedColor:
+                                        context.themeColors.colorPrimary,
                                     bufferedColor: Colors.white24,
                                     backgroundColor: Colors.white12,
                                   ),
@@ -194,9 +195,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 ],
               ),
             )
-          : const Center(
+          : Center(
               child: CircularProgressIndicator(
-                color: AppTheme.primaryBlue,
+                color: context.themeColors.colorPrimary,
               ),
             ),
     );

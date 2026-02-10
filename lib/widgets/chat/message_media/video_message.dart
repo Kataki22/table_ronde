@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/chat_model.dart';
-import '../../../utils/app_theme.dart';
+import '../../../utils/theme_extensions.dart';
 
 /// Widget to display a video message with play button
 class VideoMessage extends StatelessWidget {
@@ -29,10 +29,11 @@ class VideoMessage extends StatelessWidget {
             width: 240,
             height: 180,
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.5),
+              color: context.themeColors.bgSurface.withOpacity(0.5),
               borderRadius: BorderRadius.circular(12),
-              border:
-                  Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+              border: Border.all(
+                  color: context.themeColors.borderSubtle.withOpacity(0.1),
+                  width: 1),
             ),
             child: message.attachmentUrl != null &&
                     message.attachmentUrl!.isNotEmpty
@@ -42,11 +43,11 @@ class VideoMessage extends StatelessWidget {
                       children: [
                         // Video thumbnail placeholder
                         Container(
-                          color: Colors.black,
-                          child: const Center(
+                          color: context.themeColors.bgSurfaceDark,
+                          child: Center(
                             child: Icon(
                               Icons.videocam,
-                              color: Colors.white30,
+                              color: context.themeColors.textDisabled,
                               size: 80,
                             ),
                           ),
@@ -57,11 +58,13 @@ class VideoMessage extends StatelessWidget {
                           right: 8,
                           child: Text(
                             message.attachmentName ?? 'Vidéo',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: context.themeColors.textPrimary,
                               fontSize: 13,
                               shadows: [
-                                Shadow(color: Colors.black, blurRadius: 4)
+                                Shadow(
+                                    color: context.themeColors.bgSurfaceDark,
+                                    blurRadius: 4)
                               ],
                             ),
                             maxLines: 1,
@@ -75,16 +78,17 @@ class VideoMessage extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.videocam,
-                          color: Colors.white30,
+                          color: context.themeColors.textDisabled,
                           size: 60,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           message.attachmentName ?? 'Vidéo',
-                          style: const TextStyle(
-                            color: Colors.white70,
+                          style: TextStyle(
+                            color: context.themeColors.textSecondary
+                                .withOpacity(0.7),
                             fontSize: 14,
                           ),
                         ),
@@ -97,10 +101,11 @@ class VideoMessage extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: AppTheme.primaryBlue.withOpacity(0.9),
+              color: context.themeColors.colorPrimary.withOpacity(0.9),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.play_arrow, color: Colors.white, size: 36),
+            child: Icon(Icons.play_arrow,
+                color: context.themeColors.textInverse, size: 36),
           ),
         ],
       ),

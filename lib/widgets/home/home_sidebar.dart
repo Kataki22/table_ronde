@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../models/chat_model.dart';
-import '../../../utils/app_theme.dart';
+import '../../utils/app_theme.dart';
+import '../../utils/theme_extensions.dart';
+import '../settings/settings_dialog.dart';
 
 class HomeSidebar extends StatelessWidget {
   final bool isMobile;
@@ -27,13 +29,15 @@ class HomeSidebar extends StatelessWidget {
     return Container(
       width: isMobile ? null : 280,
       decoration: BoxDecoration(
-        color: AppTheme.cardDark,
-        border: isMobile ? null : Border(
-          right: BorderSide(
-            color: AppTheme.surfaceDark,
-            width: 1,
-          ),
-        ),
+        color: context.themeColors.bgSurface,
+        border: isMobile
+            ? null
+            : Border(
+                right: BorderSide(
+                  color: context.themeColors.bgSurfaceDark,
+                  width: 1,
+                ),
+              ),
       ),
       child: Column(
         children: [
@@ -58,51 +62,54 @@ class HomeSidebar extends StatelessWidget {
                 const SizedBox(width: 12),
                 Text(
                   'TableRonde',
-                  style: AppTheme.headingMedium.copyWith(fontSize: 18),
+                  style: AppTheme.headingMedium.copyWith(
+                      fontSize: 18, color: context.themeColors.textPrimary),
                 ),
               ],
             ),
           ),
-          
+
           // Search bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppTheme.backgroundDark,
+                color: context.themeColors.bgPrimary,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.search, color: AppTheme.textSecondary, size: 20),
+                  Icon(Icons.search,
+                      color: context.themeColors.textSecondary, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     'Recherche Rapide',
                     style: AppTheme.bodySmall.copyWith(
-                      color: AppTheme.textSecondary,
+                      color: context.themeColors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Navigation items
           _buildNavItem(
+            context,
             0,
             Icons.home_rounded,
             'Fil d\'actualités',
             badge: '+9 Posts',
           ),
-          _buildNavItem(1, Icons.campaign_rounded, 'Annonces'),
-          _buildNavItem(2, Icons.people_rounded, 'Membres'),
-          _buildNavItem(3, Icons.timeline_rounded, 'Activités'),
-          
+          _buildNavItem(context, 1, Icons.campaign_rounded, 'Annonces'),
+          _buildNavItem(context, 2, Icons.people_rounded, 'Membres'),
+          _buildNavItem(context, 3, Icons.timeline_rounded, 'Activités'),
+
           const SizedBox(height: 24),
-          
+
           // Messages section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -112,7 +119,7 @@ class HomeSidebar extends StatelessWidget {
                 Text(
                   'Messages Privés',
                   style: AppTheme.bodySmall.copyWith(
-                    color: AppTheme.textSecondary,
+                    color: context.themeColors.textSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -120,7 +127,7 @@ class HomeSidebar extends StatelessWidget {
                 IconButton(
                   icon: Icon(
                     Icons.add,
-                    color: AppTheme.textSecondary,
+                    color: context.themeColors.textSecondary,
                     size: 18,
                   ),
                   onPressed: () {},
@@ -130,9 +137,9 @@ class HomeSidebar extends StatelessWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Message list
           Expanded(
             child: ListView.builder(
@@ -143,14 +150,15 @@ class HomeSidebar extends StatelessWidget {
               },
             ),
           ),
-          
+
           // Bottom user profile
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppTheme.surfaceDark.withOpacity(0.5),
+              color: context.themeColors.bgSurfaceDark.withOpacity(0.5),
               border: Border(
-                top: BorderSide(color: AppTheme.surfaceDark, width: 1),
+                top: BorderSide(
+                    color: context.themeColors.bgSurfaceDark, width: 1),
               ),
             ),
             child: Row(
@@ -175,7 +183,7 @@ class HomeSidebar extends StatelessWidget {
                       Text(
                         'Vous',
                         style: AppTheme.bodySmall.copyWith(
-                          color: Colors.white,
+                          color: context.themeColors.textPrimary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -183,9 +191,15 @@ class HomeSidebar extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.settings, size: 18),
-                  color: AppTheme.textSecondary,
-                  onPressed: () {},
+                  icon: Icon(Icons.settings,
+                      size: 18, color: context.themeColors.textSecondary),
+                  color: context.themeColors.textSecondary,
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const SettingsDialog(),
+                    );
+                  },
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
@@ -197,23 +211,29 @@ class HomeSidebar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, {String? badge}) {
+  Widget _buildNavItem(
+      BuildContext context, int index, IconData icon, String label,
+      {String? badge}) {
     final isSelected = selectedIndex == index;
-    
+
     return InkWell(
       onTap: () => onIndexChanged(index),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.surfaceDark : Colors.transparent,
+          color: isSelected
+              ? context.themeColors.bgSurfaceDark
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : AppTheme.textSecondary,
+              color: isSelected
+                  ? context.themeColors.textPrimary
+                  : context.themeColors.textSecondary,
               size: 20,
             ),
             const SizedBox(width: 12),
@@ -221,7 +241,9 @@ class HomeSidebar extends StatelessWidget {
               child: Text(
                 label,
                 style: AppTheme.bodyMedium.copyWith(
-                  color: isSelected ? Colors.white : AppTheme.textSecondary,
+                  color: isSelected
+                      ? context.themeColors.textPrimary
+                      : context.themeColors.textSecondary,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
@@ -230,7 +252,7 @@ class HomeSidebar extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryBlue,
+                  color: context.themeColors.colorPrimary,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
@@ -264,14 +286,14 @@ class HomeSidebar extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryBlue.withOpacity(0.3),
+                    color: context.themeColors.colorPrimary.withOpacity(0.3),
                     shape: BoxShape.circle,
                   ),
                   child: Center(
                     child: Text(
                       chat.name.substring(0, 1),
                       style: AppTheme.bodyMedium.copyWith(
-                        color: AppTheme.primaryBlue,
+                        color: context.themeColors.colorPrimary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -285,9 +307,10 @@ class HomeSidebar extends StatelessWidget {
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: AppTheme.onlineGreen,
+                        color: context.themeColors.colorSuccess,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppTheme.cardDark, width: 2),
+                        border: Border.all(
+                            color: context.themeColors.bgSurface, width: 2),
                       ),
                     ),
                   ),
@@ -298,7 +321,7 @@ class HomeSidebar extends StatelessWidget {
               child: Text(
                 chat.name,
                 style: AppTheme.bodyMedium.copyWith(
-                  color: Colors.white,
+                  color: context.themeColors.textPrimary,
                   fontWeight: FontWeight.w500,
                 ),
                 overflow: TextOverflow.ellipsis,

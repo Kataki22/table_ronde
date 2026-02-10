@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../models/chat_model.dart';
-import '../../../utils/app_theme.dart';
+import '../../../utils/theme_extensions.dart';
 
 /// Widget to display a deleted message bubble
 class DeletedMessageBubble extends StatelessWidget {
@@ -28,8 +28,8 @@ class DeletedMessageBubble extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: isSentByMe
-                    ? AppTheme.chatBubbleOutgoing.withOpacity(0.6)
-                    : AppTheme.chatBubbleIncoming.withOpacity(0.6),
+                    ? context.themeColors.colorPrimary.withOpacity(0.6)
+                    : context.themeColors.bgSurface.withOpacity(0.6),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -47,13 +47,13 @@ class DeletedMessageBubble extends StatelessWidget {
                   Icon(
                     Icons.block,
                     size: 16,
-                    color: Colors.white.withOpacity(0.6),
+                    color: context.themeColors.textInverse.withOpacity(0.6),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     'Ce message a été supprimé',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.6),
+                      color: context.themeColors.textInverse.withOpacity(0.6),
                       fontSize: 13,
                       fontStyle: FontStyle.italic,
                     ),

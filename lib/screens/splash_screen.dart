@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../utils/app_theme.dart';
+import '../utils/theme_extensions.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -9,7 +10,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -17,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -53,18 +55,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.themeColors.bgPrimary,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFF0F7FF),
-              Colors.white,
-              Color(0xFFF0F7FF),
-            ],
-          ),
+        decoration: BoxDecoration(
+          color: context.themeColors.bgPrimary,
         ),
         child: Center(
           child: AnimatedBuilder(
@@ -82,20 +76,21 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         width: 120,
                         height: 120,
                         decoration: BoxDecoration(
-                          gradient: AppTheme.primaryGradient,
+                          color: context.themeColors.colorPrimary,
                           borderRadius: BorderRadius.circular(30),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primaryBlue.withOpacity(0.3),
+                              color: context.themeColors.colorPrimary
+                                  .withOpacity(0.3),
                               blurRadius: 30,
                               offset: const Offset(0, 10),
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.group_rounded,
                           size: 60,
-                          color: Colors.white,
+                          color: context.themeColors.textInverse,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -105,12 +100,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         style: AppTheme.headingLarge.copyWith(
                           fontSize: 40,
                           fontWeight: FontWeight.w800,
+                          color: context.themeColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Votre écosystème communautaire',
-                        style: AppTheme.bodyMedium,
+                        style: AppTheme.bodyMedium
+                            .copyWith(color: context.themeColors.textSecondary),
                       ),
                     ],
                   ),
