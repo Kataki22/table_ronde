@@ -23,7 +23,7 @@ class StickerMessage extends StatelessWidget {
       child: message.stickerUrl != null && message.stickerUrl!.isNotEmpty
           ? Image.asset(
               message.stickerUrl!,
-              fit: BoxFit.contain,
+              fit: BoxFit.contain, // Ensure sticker is not cropped
               errorBuilder: (context, error, stackTrace) {
                 return Center(
                   child: Text(
