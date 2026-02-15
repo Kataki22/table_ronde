@@ -1,13 +1,17 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../utils/app_theme.dart';
 import '../utils/theme_extensions.dart';
 import '../models/chat_model.dart';
+import '../data/sample_chats_data.dart';
 import '../widgets/chat/sticker_model.dart';
 import '../models/gif_model.dart';
 import '../widgets/chat/sticker_picker.dart';
@@ -15,11 +19,12 @@ import '../widgets/chat/gif_picker.dart';
 import '../widgets/chat/user_profile_sheet.dart';
 import '../widgets/video_player_screen.dart';
 import '../widgets/chat/message_media/sticker_message.dart';
-import '../widgets/chat/message_media/gif_message.dart';
 import '../widgets/chat/message_media/image_message.dart';
 import '../widgets/chat/message_media/video_message.dart';
 import '../widgets/chat/message_media/document_message.dart';
-import '../widgets/chat/message_bubble/reply_preview_widget.dart';
+import '../widgets/chat/message_media/voice_message.dart';
+import '../widgets/chat/message_media/gif_message.dart';
+
 import '../widgets/chat/message_bubble/deleted_message_bubble.dart';
 import '../widgets/chat/input/gif_sticker_picker_sheet.dart';
 
@@ -34,6 +39,10 @@ class _ChatScreenState extends State<ChatScreen> {
   // ── controllers ──────────────────────────────────────────────────────────
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  bool _isRecording = false;
+  late final AudioRecorder _audioRecorder;
+  Timer? _recordingTimer;
+  int _recordingDuration = 0;
 
   // ── state ────────────────────────────────────────────────────────────────
   final List<MessageModel> _messages = [];
@@ -52,12 +61,15 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    _audioRecorder = AudioRecorder();
     _loadSampleMessages();
     _messageController.addListener(_onTextChanged);
   }
 
   @override
   void dispose() {
+    _audioRecorder.dispose();
+    _recordingTimer?.cancel();
     _messageController.removeListener(_onTextChanged);
     _messageController.dispose();
     _scrollController.dispose();
@@ -119,62 +131,9 @@ class _ChatScreenState extends State<ChatScreen> {
   // ──────────────────────────────────────────────────────────────────────────
 
   void _loadSampleMessages() {
-    _messages.addAll([
-      MessageModel(
-        id: 'msg_1',
-        text: 'Hey! How are you doing? 😊',
-        isSentByMe: false,
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        isRead: true,
-      ),
-      MessageModel(
-        id: 'msg_2',
-        text: "I'm great! Thanks for asking. How about you?",
-        isSentByMe: true,
-        timestamp:
-            DateTime.now().subtract(const Duration(hours: 1, minutes: 55)),
-        isRead: true,
-      ),
-      MessageModel(
-        id: 'msg_3',
-        text: "I'm doing well! Just working on some projects.",
-        isSentByMe: false,
-        timestamp:
-            DateTime.now().subtract(const Duration(hours: 1, minutes: 50)),
-        isRead: true,
-      ),
-      MessageModel(
-        id: 'msg_4',
-        text: 'Want to meet up later? Maybe grab some coffee?',
-        isSentByMe: false,
-        timestamp:
-            DateTime.now().subtract(const Duration(hours: 1, minutes: 48)),
-        isRead: true,
-      ),
-      MessageModel(
-        id: 'msg_5',
-        text: "Sure! That sounds great. What time works for you?",
-        isSentByMe: true,
-        timestamp:
-            DateTime.now().subtract(const Duration(hours: 1, minutes: 45)),
-        isRead: true,
-      ),
-      MessageModel(
-        id: 'msg_6',
-        text: 'How about 5 PM at the usual spot?',
-        isSentByMe: false,
-        timestamp:
-            DateTime.now().subtract(const Duration(hours: 1, minutes: 40)),
-        isRead: true,
-      ),
-      MessageModel(
-        id: 'msg_7',
-        text: "Perfect! See you there! 👍",
-        isSentByMe: true,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-        isRead: true,
-      ),
-    ]);
+    // Charger les messages depuis le service de données
+    // Utiliser l'ID du chat courant si disponible, sinon utiliser un ID par défaut
+    _messages.addAll(SampleChatsData.getSampleMessages('default'));
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -205,7 +164,10 @@ class _ChatScreenState extends State<ChatScreen> {
           replyToId: _replyTo?.id,
         ),
       );
+
       _replyTo = null;
+      _chat.lastMessage = text;
+      _chat.lastMessageTime = DateTime.now();
     });
     _messageController.clear();
     _scrollToBottom();
@@ -455,7 +417,14 @@ class _ChatScreenState extends State<ChatScreen> {
           replyToId: _replyTo?.id,
         ),
       );
+
       _replyTo = null;
+      _chat.lastMessage = type == MessageType.image
+          ? 'Image'
+          : (type == MessageType.video
+              ? 'Vidéo'
+              : (type == MessageType.document ? 'Document' : name));
+      _chat.lastMessageTime = DateTime.now();
     });
     _scrollToBottom();
   }
@@ -837,8 +806,8 @@ class _ChatScreenState extends State<ChatScreen> {
                               ? null
                               : BoxDecoration(
                                   color: isSentByMe
-                                      ? AppTheme.chatBubbleOutgoing
-                                      : AppTheme.chatBubbleIncoming,
+                                      ? context.themeColors.msgBubbleSent
+                                      : context.themeColors.msgBubbleReceived,
                                   borderRadius: BorderRadius.only(
                                     topLeft: const Radius.circular(18),
                                     topRight: const Radius.circular(18),
@@ -902,7 +871,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   MessageType.image ||
                                               message.type == MessageType.video)
                                           ? BoxDecoration(
-                                              color: Colors.black38,
+                                              color: context
+                                                  .themeColors.bgSurfaceDark
+                                                  .withOpacity(0.7),
                                               borderRadius:
                                                   BorderRadius.circular(12))
                                           : null,
@@ -910,21 +881,23 @@ class _ChatScreenState extends State<ChatScreen> {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           if (message.isEdited)
-                                            const Text(
+                                            Text(
                                               'edited ',
                                               style: TextStyle(
                                                 fontSize: 10,
-                                                color: Color.fromRGBO(
-                                                    255, 255, 255, 0.55),
+                                                color: context
+                                                    .themeColors.textInverse
+                                                    .withOpacity(0.55),
                                                 fontStyle: FontStyle.italic,
                                               ),
                                             ),
                                           Text(
                                             _formatTime(message.timestamp),
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 11,
-                                              color: Color.fromRGBO(
-                                                  255, 255, 255, 0.55),
+                                              color: context
+                                                  .themeColors.textSecondary
+                                                  .withOpacity(0.7),
                                             ),
                                           ),
                                           if (isSentByMe) ...[
@@ -935,13 +908,12 @@ class _ChatScreenState extends State<ChatScreen> {
                                                   : Icons.done,
                                               size: 15,
                                               color: message.isRead
-                                                  ? AppTheme.telegramBlue
+                                                  ? context
+                                                      .themeColors.colorPrimary
                                                       .withOpacity(0.8)
-                                                  : (message.type ==
-                                                          MessageType.text
-                                                      ? Colors.white
-                                                          .withOpacity(0.55)
-                                                      : Colors.white),
+                                                  : context
+                                                      .themeColors.textDisabled
+                                                      .withOpacity(0.9),
                                             ),
                                           ],
                                         ],
@@ -962,16 +934,19 @@ class _ChatScreenState extends State<ChatScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppTheme.cardDark,
+                                color: context.themeColors.bgSurfaceDark,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.black26),
+                                border: Border.all(
+                                    color: context.themeColors.borderDark),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: message.reactions.entries.map((e) {
                                   return Text('${e.key} ${e.value}',
-                                      style: const TextStyle(
-                                          fontSize: 10, color: Colors.white));
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          color: context
+                                              .themeColors.textSecondary));
                                 }).toList(),
                               ),
                             ),
@@ -993,13 +968,6 @@ class _ChatScreenState extends State<ChatScreen> {
     return DeletedMessageBubble(message: message);
   }
 
-  Widget _buildReplyPreview(MessageModel replied) {
-    return ReplyPreviewWidget(
-      repliedMessage: replied,
-      chat: _chat,
-    );
-  }
-
   Widget _buildBubbleBody(MessageModel msg) {
     switch (msg.type) {
       case MessageType.sticker:
@@ -1012,11 +980,15 @@ class _ChatScreenState extends State<ChatScreen> {
         return _buildVideoBody(msg);
       case MessageType.document:
         return _buildDocumentBody(msg);
+      case MessageType.voice:
+        return _buildVoiceBody(msg);
       case MessageType.text:
         return Text(
           msg.text,
-          style:
-              const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
+          style: TextStyle(
+              color: context.themeColors.textPrimary,
+              fontSize: 15,
+              height: 1.4),
         );
     }
   }
@@ -1045,6 +1017,10 @@ class _ChatScreenState extends State<ChatScreen> {
       message: msg,
       isSentByMe: msg.isSentByMe,
     );
+  }
+
+  Widget _buildVoiceBody(MessageModel msg) {
+    return VoiceMessage(message: msg);
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -1174,6 +1150,8 @@ class _ChatScreenState extends State<ChatScreen> {
           isRead: false,
         ),
       );
+      _chat.lastMessage = type == MessageType.sticker ? 'Sticker' : 'GIF';
+      _chat.lastMessageTime = DateTime.now();
     });
     _scrollToBottom();
   }
@@ -1181,8 +1159,12 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageInput() {
     final bool hasText = _messageController.text.trim().isNotEmpty;
 
+    if (_isRecording) {
+      return _buildRecordingInput();
+    }
+
     return Container(
-      color: AppTheme.cardDark,
+      color: context.themeColors.bgSurface,
       padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8, top: 8),
       child: SafeArea(
         child: Row(
@@ -1191,37 +1173,39 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppTheme.surfaceDark,
+                  color: context.themeColors.bgInput,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.emoji_emotions,
-                          color: AppTheme.primaryBlue),
+                      icon: Icon(Icons.emoji_emotions,
+                          color: context.themeColors.colorPrimary),
                       onPressed: _showPlusMenu,
                     ),
                     Expanded(
                       child: TextField(
                         controller: _messageController,
-                        style: const TextStyle(color: Colors.white),
+                        style:
+                            TextStyle(color: context.themeColors.textPrimary),
                         minLines: 1,
                         maxLines: 5,
                         textInputAction: TextInputAction.newline,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           hintText: 'Message',
-                          hintStyle: TextStyle(color: Colors.white54),
+                          hintStyle: TextStyle(
+                              color: context.themeColors.textSecondary),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
+                          contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
                           isDense: true,
                         ),
                       ),
                     ),
                     IconButton(
-                        icon: const Icon(Icons.add_circle_outline,
-                            color: Colors.white70),
+                        icon: Icon(Icons.add_circle_outline,
+                            color: context.themeColors.textSecondary),
                         onPressed: _showAttachmentOptions),
                   ],
                 ),
@@ -1231,23 +1215,18 @@ class _ChatScreenState extends State<ChatScreen> {
             GestureDetector(
               onTap: hasText
                   ? _sendMessage
-                  : () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text(
-                                'Enregistrement vocal... (Maintenez pour enregistrer)')),
-                      );
-                    },
+                  : null, // Disable tap if no text (mic is handled by long press)
+              onLongPress: hasText ? null : _startRecording,
               child: Container(
                 width: 48,
                 height: 48,
-                decoration: const BoxDecoration(
-                  color: AppTheme.primaryBlue,
+                decoration: BoxDecoration(
+                  color: context.themeColors.colorPrimary,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   hasText ? Icons.send : Icons.mic,
-                  color: Colors.white,
+                  color: context.themeColors.textInverse,
                   size: 24,
                 ),
               ),
@@ -1284,7 +1263,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showAttachmentOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.surfaceDark,
+      backgroundColor: context.themeColorsNoWatch.bgSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -1299,7 +1278,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppTheme.textSecondary.withOpacity(0.3),
+                    color: context.themeColors.textSecondary.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -1408,9 +1387,190 @@ class _ChatScreenState extends State<ChatScreen> {
         return 'Vidéo';
       case MessageType.document:
         return 'Document';
+      case MessageType.voice:
+        return 'Vocal';
       case MessageType.text:
         return '';
     }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // VOICE RECORDING UI
+  // ──────────────────────────────────────────────────────────────────────────
+
+  Future<void> _startRecording() async {
+    try {
+      if (await _audioRecorder.hasPermission()) {
+        final directory = await getApplicationDocumentsDirectory();
+        final path =
+            '${directory.path}/voice_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+        await _audioRecorder.start(const RecordConfig(), path: path);
+
+        _recordingDuration = 0;
+        _startTimer();
+
+        HapticFeedback.heavyImpact();
+        setState(() {
+          _isRecording = true;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error starting recording: $e');
+    }
+  }
+
+  Future<void> _stopRecording() async {
+    try {
+      _stopTimer();
+      final path = await _audioRecorder.stop();
+      setState(() {
+        _isRecording = false;
+      });
+
+      if (path != null && _recordingDuration > 0) {
+        _sendVoiceMessage(path, _recordingDuration);
+      }
+    } catch (e) {
+      debugPrint('Error stopping recording: $e');
+      setState(() {
+        _isRecording = false;
+      });
+    }
+  }
+
+  Future<void> _cancelRecording() async {
+    try {
+      _stopTimer();
+      await _audioRecorder.stop();
+      // Optionally delete the file if created
+    } catch (e) {
+      debugPrint('Error cancelling recording: $e');
+    }
+    setState(() {
+      _isRecording = false;
+
+      _recordingDuration = 0;
+    });
+  }
+
+  void _startTimer() {
+    _recordingTimer?.cancel();
+    _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _recordingDuration++;
+      });
+    });
+  }
+
+  void _stopTimer() {
+    _recordingTimer?.cancel();
+    _recordingTimer = null;
+  }
+
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${_formatNumber(minutes)}:${_formatNumber(remainingSeconds)}';
+  }
+
+  String _formatNumber(int number) {
+    if (number < 10) {
+      return '0$number';
+    }
+    return number.toString();
+  }
+
+  void _sendVoiceMessage(String path, int duration) {
+    if (duration < 1) return; // Don't send empty messages
+
+    setState(() {
+      _messages.add(
+        MessageModel(
+          text: '', // Voice messages don't need text
+          isSentByMe: true,
+          timestamp: DateTime.now(),
+          type: MessageType.voice,
+          voiceDuration: duration,
+          attachmentUrl: path, // Use attachmentUrl to store local path
+          isRead: false,
+        ),
+      );
+      _chat.lastMessage = 'Vocal';
+      _chat.lastMessageTime = DateTime.now();
+    });
+    _scrollToBottom();
+  }
+
+  Widget _buildRecordingInput() {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color:
+            context.themeColors.bgInput, // Ensure visibility against background
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: SafeArea(
+        child: Row(
+          children: [
+            const Icon(Icons.mic, color: Colors.redAccent),
+            const SizedBox(width: 12),
+            Text(
+              _formatDuration(_recordingDuration),
+              style: TextStyle(
+                color: context.themeColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Glisser pour annuler',
+              style: TextStyle(
+                color: context.themeColors.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            const Spacer(),
+            GestureDetector(
+              onTap: _cancelRecording,
+              child: Text(
+                'Annuler',
+                style: TextStyle(
+                  color: context.themeColors.textSecondary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            GestureDetector(
+              onTap: _stopRecording,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: context.themeColors.colorPrimary,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.send,
+                  color: context.themeColors.textInverse,
+                  size: 24,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

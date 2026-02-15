@@ -1,4 +1,4 @@
-enum MessageType { text, sticker, gif, image, video, document }
+enum MessageType { text, sticker, gif, image, video, document, voice }
 
 class MessageModel {
   final String id;
@@ -12,6 +12,7 @@ class MessageModel {
   final String? stickerUrl; // sticker asset path
   final String? gifUrl; // gif asset or network URL
   final String? replyToId; // id of the message being replied to
+  final int? voiceDuration; // duration in seconds for voice messages
   bool isEdited;
   bool isDeleted;
 
@@ -29,6 +30,7 @@ class MessageModel {
     this.stickerUrl,
     this.gifUrl,
     this.replyToId,
+    this.voiceDuration,
     this.isEdited = false,
     this.isDeleted = false,
     this.reactions = const {},
@@ -40,9 +42,9 @@ class ChatModel {
   final String name;
   final String? avatarUrl;
   final bool isOnline;
-  final String? lastMessage;
-  final DateTime? lastMessageTime;
-  final int unreadCount;
+  String? lastMessage;
+  DateTime? lastMessageTime;
+  int unreadCount;
   final String? bio;
   final String? phone;
   final String? username;

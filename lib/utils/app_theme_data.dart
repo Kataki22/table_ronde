@@ -69,6 +69,10 @@ class AppThemeData {
   final Color colorDnd;
   final Color colorOffline;
 
+  // Couleurs des bulles de messages
+  final Color msgBubbleSent;
+  final Color msgBubbleReceived;
+
   const AppThemeData({
     required this.name,
     required this.id,
@@ -116,6 +120,8 @@ class AppThemeData {
     required this.colorIdle,
     required this.colorDnd,
     required this.colorOffline,
+    required this.msgBubbleSent,
+    required this.msgBubbleReceived,
   });
 
   /// Thème Discord
@@ -166,6 +172,8 @@ class AppThemeData {
     colorIdle: Color(0xFFFAA61A),
     colorDnd: Color(0xFFF23F43),
     colorOffline: Color(0xFF80848E),
+    msgBubbleSent: Color(0xFF5865F2),
+    msgBubbleReceived: Color(0xFF2E3035),
   );
 
   /// Thème WhatsApp Light
@@ -204,6 +212,8 @@ class AppThemeData {
     colorIdle: Color(0xFFF7B928),
     colorDnd: Color(0xFFEA0038),
     colorOffline: Color(0xFF8696A0),
+    msgBubbleSent: Color(0xFFD9FDD3),
+    msgBubbleReceived: Color(0xFFFFFFFF),
   );
 
   /// Thème WhatsApp Dark
@@ -242,6 +252,8 @@ class AppThemeData {
     colorIdle: Color(0xFFF7B928),
     colorDnd: Color(0xFFEA0038),
     colorOffline: Color(0xFF667781),
+    msgBubbleSent: Color(0xFF005C4B),
+    msgBubbleReceived: Color(0xFF202C33),
   );
 
   /// Thème Telegram Light
@@ -280,6 +292,8 @@ class AppThemeData {
     colorIdle: Color(0xFFFF9800),
     colorDnd: Color(0xFFE53935),
     colorOffline: Color(0xFFA8A8A8),
+    msgBubbleSent: Color(0xFFEFFFDE),
+    msgBubbleReceived: Color(0xFFFFFFFF),
   );
 
   /// Thème Telegram Dark
@@ -318,6 +332,8 @@ class AppThemeData {
     colorIdle: Color(0xFFFF9800),
     colorDnd: Color(0xFFE53935),
     colorOffline: Color(0xFF707579),
+    msgBubbleSent: Color(0xFF2B5278),
+    msgBubbleReceived: Color(0xFF182533),
   );
 
   /// Thème VS Code
@@ -356,6 +372,8 @@ class AppThemeData {
     colorIdle: Color(0xFFDCDCAA),
     colorDnd: Color(0xFFF48771),
     colorOffline: Color(0xFF6E6E6E),
+    msgBubbleSent: Color(0xFF007ACC),
+    msgBubbleReceived: Color(0xFF252526),
   );
 
   /// Liste de tous les thèmes disponibles

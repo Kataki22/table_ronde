@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tableronde_app/models/chat_model.dart';
 import 'package:tableronde_app/utils/theme_extensions.dart';
+import 'package:tableronde_app/data/sample_chats_data.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -10,42 +11,15 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  final List<ChatModel> _allChats = [
-    ChatModel(
-      id: '1',
-      name: 'T4zor',
-      lastMessage: 'Il me dit f*ck you mdr.',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 2)),
-      avatarUrl: 'assets/images/Avatar1.png',
-      isOnline: true,
-      unreadCount: 1,
-    ),
-    ChatModel(
-      id: '2',
-      name: 'Tk-Porky',
-      lastMessage: 'Seigneur.💔🙌 !!',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 4)),
-      avatarUrl: 'assets/images/Avatar2.png',
-      isOnline: false,
-      unreadCount: 0,
-    ),
-    ChatModel(
-      id: '3',
-      name: 'AlistairJr',
-      lastMessage: 'N\'oubliez pas de mettre à jour...',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
-      avatarUrl: '',
-      isOnline: true,
-      unreadCount: 3,
-    ),
-  ];
-
+  late List<ChatModel> _allChats;
   List<ChatModel> _filteredChats = [];
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    // Charger les conversations depuis le service de données
+    _allChats = SampleChatsData.getSampleChats();
     _filteredChats = _allChats;
     _searchController.addListener(_filterChats);
   }

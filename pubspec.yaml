@@ -28,6 +28,12 @@ dependencies:
   video_player: ^2.5.1
   shared_preferences: ^2.5.4
 
+  # Audio & Permissions
+  record: ^6.2.0
+  audioplayers: ^6.0.0
+  path_provider: ^2.1.5
+  permission_handler: ^11.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

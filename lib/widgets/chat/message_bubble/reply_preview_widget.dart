@@ -27,6 +27,8 @@ class ReplyPreviewWidget extends StatelessWidget {
         return 'Document';
       case MessageType.text:
         return '';
+      case MessageType.voice:
+        return 'Vocal';
     }
   }
 
