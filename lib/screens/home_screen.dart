@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../utils/app_theme.dart';
 import '../utils/theme_extensions.dart';
 import '../widgets/home/home_sidebar.dart';
@@ -10,6 +11,9 @@ import '../widgets/home/announcements_feed.dart';
 import '../widgets/home/create_post_dialog.dart';
 import '../widgets/home/members_list.dart';
 import '../widgets/home/activities_feed.dart';
+import '../providers/notification_provider.dart';
+import '../widgets/notifications/badge_counter.dart';
+import '../screens/notifications/notification_center_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -139,6 +143,34 @@ class _HomeScreenState extends State<HomeScreen> {
             IconButton(
               icon: const Icon(Icons.search),
               onPressed: () {},
+            ),
+            Consumer<NotificationProvider>(
+              builder: (context, notifProvider, _) {
+                final unreadCount = notifProvider.unreadCount;
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_outlined),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationCenterScreen(),
+                          ),
+                        );
+                      },
+                      tooltip: 'Notifications',
+                    ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 6,
+                        top: 8,
+                        child: BadgeCounter(count: unreadCount, size: 16),
+                      ),
+                  ],
+                );
+              },
             ),
             Builder(
               builder: (context) => IconButton(

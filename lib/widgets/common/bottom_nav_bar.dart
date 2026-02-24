@@ -22,13 +22,13 @@ class CustomBottomNavBar extends StatelessWidget {
       unselectedItemColor: context.themeColors.textSecondary,
       showSelectedLabels: true,
       showUnselectedLabels: true,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
-        BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Chat'),
-        BottomNavigationBarItem(
+      items: [
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
+        const BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Chat'),
+        const BottomNavigationBarItem(
             icon: Icon(Icons.attach_money), label: 'Finance'),
-        BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Éduc'),
-        BottomNavigationBarItem(
+        const BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Edu'),
+        const BottomNavigationBarItem(
             icon: Icon(Icons.sports_esports), label: 'Jeux'),
       ],
     );

@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import '../../../models/gif_model.dart';
 import '../../../utils/theme_extensions.dart';
+import '../../../services/sticker_manager.dart';
 
 /// Grid view for displaying local stickers
 class StickerGridView extends StatelessWidget {
@@ -16,7 +19,22 @@ class StickerGridView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get stickers for selected category
-    final stickers = gifsByCategory(category);
+    List<GifModel> stickers;
+
+    if (category == 'Mes stickers') {
+      stickers = StickerManager()
+          .customStickers
+          .map((s) => GifModel(
+                id: s.id,
+                title: s.name,
+                category: 'Mes stickers',
+                assetPath: s.filePath,
+                thumbEmoji: '⭐',
+              ))
+          .toList();
+    } else {
+      stickers = gifsByCategory(category);
+    }
 
     if (stickers.isEmpty) {
       return Center(
@@ -88,21 +106,36 @@ class _StickerGridItem extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            sticker.assetPath,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: context.themeColors.bgSurface,
-                child: Center(
-                  child: Text(
-                    sticker.thumbEmoji,
-                    style: const TextStyle(fontSize: 48),
-                  ),
-                ),
-              );
-            },
-          ),
+          child: sticker.assetPath.startsWith('assets/')
+              ? Image.asset(
+                  sticker.assetPath,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _buildErrorWidget(context);
+                  },
+                )
+              : (!kIsWeb
+                  ? Image.file(
+                      File(sticker.assetPath),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildErrorWidget(context);
+                      },
+                    )
+                  : _buildErrorWidget(
+                      context)), // Fallback for web if not asset
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget(BuildContext context) {
+    return Container(
+      color: context.themeColors.bgSurface,
+      child: Center(
+        child: Text(
+          sticker.thumbEmoji,
+          style: const TextStyle(fontSize: 48),
         ),
       ),
     );

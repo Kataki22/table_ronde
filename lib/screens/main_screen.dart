@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tableronde_app/screens/chat_list_screen.dart';
+//import 'package:tableronde_app/screens/notifications/notification_center_screen.dart';
 //import 'package:tableronde_app/screens/education_screen.dart';
 //import 'package:tableronde_app/screens/finance_screen.dart';
 //import 'package:tableronde_app/screens/games_screen.dart';
@@ -81,9 +82,9 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
       case 3: // EducationScreen
         return _buildEducationAppBar();
       case 4: // GamesScreen
-        return _buildGamesAppBar();
+        return _buildGamesAppBar();*/
       default:
-        return null;*/
+        return null;
     }
   }
 
@@ -179,22 +180,25 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
 
   Widget? _buildFloatingActionButton() {
     switch (_selectedIndex) {
-      case 2: // FinanceScreen
+      case 3: // FinanceScreen
         return FloatingActionButton.extended(
+          heroTag: 'finance_fab',
           onPressed: _showTransactionDialog,
           backgroundColor: context.themeColorsNoWatch.colorSuccess,
           icon: const Icon(Icons.add),
           label: const Text('Transaction'),
         );
-      case 3: // EducationScreen
+      case 4: // EducationScreen
         return FloatingActionButton.extended(
+          heroTag: 'education_fab',
           onPressed: _showEducationAddDialog,
           backgroundColor: context.themeColorsNoWatch.colorWarning,
           icon: const Icon(Icons.add),
           label: const Text('Ajouter'),
         );
-      case 4: // GamesScreen
+      case 5: // GamesScreen
         return FloatingActionButton.extended(
+          heroTag: 'games_fab',
           onPressed: _showNewGameDialog,
           backgroundColor: context.themeColorsNoWatch.colorBrand,
           icon: const Icon(Icons.add),
@@ -315,7 +319,7 @@ class _MainScreenState extends State<MainScreen> with TickerProviderStateMixin {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
+                  color: color.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: color, size: 24),
             ),

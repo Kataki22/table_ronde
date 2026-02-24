@@ -20,7 +20,7 @@ dependencies:
 
   #File Picker
   file_picker: ^8.0.0
-  emoji_picker_flutter: ^2.0.0
+  emoji_picker_flutter: ^4.4.0
   http: ^1.1.0
   cached_network_image: ^3.3.0
 
@@ -34,11 +34,13 @@ dependencies:
   path_provider: ^2.1.5
   permission_handler: ^11.3.1
   gif_view: ^1.0.3
+  pro_image_editor: ^12.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  faker: ^2.1.0
 
 flutter:
   uses-material-design: true

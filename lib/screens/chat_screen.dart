@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../utils/app_theme.dart';
 import '../utils/theme_extensions.dart';
@@ -27,6 +28,17 @@ import '../widgets/chat/message_media/gif_message.dart';
 
 import '../widgets/chat/message_bubble/deleted_message_bubble.dart';
 import '../widgets/chat/input/gif_sticker_picker_sheet.dart';
+import '../providers/group_chat_provider.dart';
+import '../screens/groups/group_info_bottom_sheet.dart';
+import '../providers/profile_provider.dart';
+import '../screens/profiles/profile_screen.dart';
+import '../providers/message_search_provider.dart';
+import '../widgets/search/chat_search_bar.dart';
+import '../widgets/search/search_results_list.dart';
+import '../models/search/search_result.dart';
+import '../providers/conversation_settings_provider.dart';
+import '../screens/settings/conversation_settings_bottom_sheet.dart';
+import '../screens/media/media_gallery_bottom_sheet.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -54,6 +66,9 @@ class _ChatScreenState extends State<ChatScreen> {
   MessageModel? _replyTo; // message currently being replied to
   MessageModel? _editingMsg; // message currently being edited
 
+  // ── search state ─────────────────────────────────────────────────────────
+  bool _isSearchOpen = false;
+
   // ──────────────────────────────────────────────────────────────────────────
   // LIFECYCLE
   // ──────────────────────────────────────────────────────────────────────────
@@ -79,7 +94,13 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)!.settings.arguments as ChatModel;
+    final routeArgs = ModalRoute.of(context)?.settings.arguments;
+
+    // Fallback to first sample chat if arguments are missing (e.g. on web reload)
+    final ChatModel args = (routeArgs is ChatModel)
+        ? routeArgs
+        : SampleChatsData.getSampleChats().first;
+
     _chat = ChatModel(
       id: args.id,
       name: args.name,
@@ -441,6 +462,89 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  /// Navigate to the full profile screen for a user
+  void _navigateToProfile(String userId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(userId: userId),
+      ),
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SEARCH
+  // ──────────────────────────────────────────────────────────────────────────
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearchOpen = !_isSearchOpen;
+    });
+
+    // Si on ferme la recherche, effacer les résultats
+    if (!_isSearchOpen) {
+      final searchProvider = context.read<MessageSearchProvider>();
+      searchProvider.clear();
+    }
+  }
+
+  void _handleSearchChanged(String query) {
+    final searchProvider = context.read<MessageSearchProvider>();
+    searchProvider.search(query, _chat.id, _messages);
+  }
+
+  void _handleSearchResultTap(SearchResult result) {
+    // Fermer la recherche
+    setState(() {
+      _isSearchOpen = false;
+    });
+
+    // Effacer les résultats
+    final searchProvider = context.read<MessageSearchProvider>();
+    searchProvider.clear();
+
+    // Scroller vers le message
+    final messageIndex = result.matchIndex;
+    if (messageIndex >= 0 && messageIndex < _messages.length) {
+      // Calculer la position approximative dans la liste
+      final itemHeight = 100.0; // Hauteur approximative d'un message
+      final targetPosition = messageIndex * itemHeight;
+
+      // Scroller vers la position
+      _scrollController.animateTo(
+        targetPosition,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // SETTINGS
+  // ──────────────────────────────────────────────────────────────────────────
+
+  void _openSettings() {
+    ConversationSettingsBottomSheet.show(
+      context: context,
+      chatId: _chat.id,
+      chatName: _chat.name,
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // MEDIA GALLERY
+  // ──────────────────────────────────────────────────────────────────────────
+
+  void _openMediaGallery() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => MediaGalleryBottomSheet(
+        chatId: _chat.id,
+      ),
+    );
+  }
+
   // ──────────────────────────────────────────────────────────────────────────
   // SCROLL
   // ──────────────────────────────────────────────────────────────────────────
@@ -479,144 +583,426 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the wallpaper setting for this conversation
+    final settingsProvider = context.watch<ConversationSettingsProvider>();
+    final settings = settingsProvider.getSettings(_chat.id);
+    final wallpaperUrl = settings.wallpaperUrl;
+
     return Scaffold(
-      backgroundColor: context.themeColors.bgPrimary,
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                final showDateSep = index == 0 ||
-                    !_isSameDay(
-                        message.timestamp, _messages[index - 1].timestamp);
-                return Column(
-                  children: [
-                    if (showDateSep) _buildDateSeparator(message.timestamp),
-                    _buildMessageBubble(message),
-                  ],
-                );
-              },
-            ),
-          ),
-          if (_replyTo != null || _editingMsg != null) _buildReplyOrEditBar(),
-          _buildMessageInput(),
-        ],
-      ),
-    );
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // APP BAR
-  // ──────────────────────────────────────────────────────────────────────────
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: context.themeColors.bgSurface,
-      elevation: 0,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: context.themeColors.textPrimary),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: InkWell(
-        onTap: () {},
-        child: Row(
+      backgroundColor:
+          wallpaperUrl == null ? context.themeColors.bgPrimary : null,
+      body: Container(
+        decoration: wallpaperUrl != null
+            ? BoxDecoration(
+                image: DecorationImage(
+                  image: _getImageProvider(wallpaperUrl)!,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : null,
+        child: Column(
           children: [
-            GestureDetector(
-              onTap: _showUserProfile,
+            // AppBar as a custom widget since we need it inside the Container
+            _buildCustomAppBar(),
+
+            Expanded(
               child: Stack(
                 children: [
-                  CircleAvatar(
-                    backgroundImage: _getImageProvider(_chat.avatarUrl),
-                    child: _chat.avatarUrl == null || _chat.avatarUrl!.isEmpty
-                        ? Text(_chat.name[0])
-                        : null,
-                    radius: 20,
+                  // Chat principal
+                  Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 16),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            final message = _messages[index];
+                            final showDateSep = index == 0 ||
+                                !_isSameDay(message.timestamp,
+                                    _messages[index - 1].timestamp);
+                            return Column(
+                              children: [
+                                if (showDateSep)
+                                  _buildDateSeparator(message.timestamp),
+                                _buildMessageBubble(message),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      if (_replyTo != null || _editingMsg != null)
+                        _buildReplyOrEditBar(),
+                      _buildMessageInput(),
+                    ],
                   ),
-                  if (_chat.isOnline)
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
+
+                  // Overlay de résultats de recherche
+                  if (_isSearchOpen)
+                    Positioned.fill(
                       child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: context.themeColors.colorOnline,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                              color: context.themeColors.bgSurface, width: 2),
+                        color: context.themeColors.bgPrimary,
+                        child: SearchResultsList(
+                          onResultTap: _handleSearchResultTap,
                         ),
                       ),
                     ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _chat.name,
-                        style: AppTheme.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: context.themeColors.textPrimary,
-                        ),
-                      ),
-                      if (_isTyping)
-                        Text(
-                          'typing...',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: context.themeColors.colorPrimary,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        )
-                      else
-                        Text(
-                          _chat.isOnline ? 'online' : 'last seen recently',
-                          style: AppTheme.bodySmall.copyWith(
-                            color: context.themeColors.textSecondary,
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.chevron_right, size: 20),
-                ],
-              ),
-            ),
           ],
         ),
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.phone),
-          color: context.themeColors.textPrimary,
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Appel vocal (Simulation)')),
-            );
-          },
+    );
+  }
+
+  // Custom AppBar widget to use inside the Container
+  Widget _buildCustomAppBar() {
+    return Container(
+      color: context.themeColors.bgSurface,
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 56,
+          child: Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back,
+                    color: context.themeColors.textPrimary),
+                onPressed: () => Navigator.pop(context),
+              ),
+              Expanded(
+                child: _isSearchOpen
+                    ? ChatSearchBar(
+                        isOpen: _isSearchOpen,
+                        onSearchChanged: _handleSearchChanged,
+                        onClose: _toggleSearch,
+                      )
+                    : InkWell(
+                        onTap: () {
+                          // Navigate to profile screen for 1-to-1 chats
+                          final groupProvider =
+                              context.read<GroupChatProvider>();
+                          final group = groupProvider.getGroupById(_chat.id);
+
+                          if (group == null) {
+                            // It's a 1-to-1 chat, navigate to profile
+                            // Try to find the user ID from the profile provider
+                            final profileProvider =
+                                context.read<ProfileProvider>();
+                            final profile =
+                                profileProvider.getProfileByName(_chat.name);
+                            if (profile != null) {
+                              _navigateToProfile(profile.id);
+                            }
+                          } else {
+                            // It's a group, show group info
+                            GroupInfoBottomSheet.show(context, group);
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                // Navigate to profile screen for 1-to-1 chats
+                                final groupProvider =
+                                    context.read<GroupChatProvider>();
+                                final group =
+                                    groupProvider.getGroupById(_chat.id);
+
+                                if (group == null) {
+                                  // It's a 1-to-1 chat, navigate to profile
+                                  final profileProvider =
+                                      context.read<ProfileProvider>();
+                                  final profile = profileProvider
+                                      .getProfileByName(_chat.name);
+                                  if (profile != null) {
+                                    _navigateToProfile(profile.id);
+                                  }
+                                }
+                              },
+                              child: Builder(
+                                builder: (context) {
+                                  // Get profile ID for hero tag
+                                  final profileProvider =
+                                      context.read<ProfileProvider>();
+                                  final profile = profileProvider
+                                      .getProfileByName(_chat.name);
+                                  final heroTag = profile != null
+                                      ? 'profile_avatar_${profile.id}'
+                                      : 'profile_avatar_${_chat.id}';
+
+                                  return Stack(
+                                    children: [
+                                      Hero(
+                                        tag: heroTag,
+                                        child: CircleAvatar(
+                                          backgroundImage: _getImageProvider(
+                                              _chat.avatarUrl),
+                                          child: _chat.avatarUrl == null ||
+                                                  _chat.avatarUrl!.isEmpty
+                                              ? Text(_chat.name[0])
+                                              : null,
+                                          radius: 20,
+                                        ),
+                                      ),
+                                      if (_chat.isOnline)
+                                        Positioned(
+                                          bottom: 0,
+                                          right: 0,
+                                          child: Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              color: context
+                                                  .themeColors.colorOnline,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(
+                                                  color: context
+                                                      .themeColors.bgSurface,
+                                                  width: 2),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        _chat.name,
+                                        style: AppTheme.bodyLarge.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color:
+                                              context.themeColors.textPrimary,
+                                        ),
+                                      ),
+                                      if (_isTyping)
+                                        Text(
+                                          'typing...',
+                                          style: AppTheme.bodySmall.copyWith(
+                                            color: context
+                                                .themeColors.colorPrimary,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        )
+                                      else
+                                        Text(
+                                          _chat.isOnline
+                                              ? 'online'
+                                              : 'last seen recently',
+                                          style: AppTheme.bodySmall.copyWith(
+                                            color: context
+                                                .themeColors.textSecondary,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: 6),
+                                  const Icon(Icons.chevron_right, size: 20),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+              ),
+              // ── Bouton appel dépliable (1-to-1 uniquement) ───────────────
+              if (!_isSearchOpen)
+                Builder(
+                  builder: (context) {
+                    final groupProvider = context.watch<GroupChatProvider>();
+                    final group = groupProvider.getGroupById(_chat.id);
+                    if (group != null) return const SizedBox.shrink();
+
+                    return PopupMenuButton<String>(
+                      tooltip: 'Appeler',
+                      icon: Icon(
+                        Icons.call,
+                        color: context.themeColorsNoWatch.colorPrimary,
+                      ),
+                      color: context.themeColorsNoWatch.bgSurface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onSelected: (value) {
+                        if (value == 'voice') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Appel vocal (Simulation)')),
+                          );
+                        } else if (value == 'video') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Appel vidéo (Simulation)')),
+                          );
+                        }
+                      },
+                      itemBuilder: (menuCtx) => [
+                        PopupMenuItem(
+                          value: 'voice',
+                          child: Row(
+                            children: [
+                              Icon(Icons.phone,
+                                  color:
+                                      menuCtx.themeColorsNoWatch.colorPrimary,
+                                  size: 20),
+                              const SizedBox(width: 12),
+                              Text('Appel vocal',
+                                  style: TextStyle(
+                                      color: menuCtx
+                                          .themeColorsNoWatch.textPrimary)),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'video',
+                          child: Row(
+                            children: [
+                              Icon(Icons.videocam,
+                                  color:
+                                      menuCtx.themeColorsNoWatch.colorPrimary,
+                                  size: 20),
+                              const SizedBox(width: 12),
+                              Text('Appel vidéo',
+                                  style: TextStyle(
+                                      color: menuCtx
+                                          .themeColorsNoWatch.textPrimary)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+
+              // ── Menu 3 points ─────────────────────────────────────────────
+              if (!_isSearchOpen)
+                Builder(
+                  builder: (context) {
+                    final groupProvider = context.watch<GroupChatProvider>();
+                    final group = groupProvider.getGroupById(_chat.id);
+
+                    return PopupMenuButton<String>(
+                      tooltip: 'Plus d\'options',
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: context.themeColorsNoWatch.textPrimary,
+                      ),
+                      color: context.themeColorsNoWatch.bgSurface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onSelected: (value) {
+                        switch (value) {
+                          case 'search':
+                            _toggleSearch();
+                            break;
+                          case 'gallery':
+                            _openMediaGallery();
+                            break;
+                          case 'settings':
+                            _openSettings();
+                            break;
+                          case 'group_info':
+                            if (group != null) {
+                              GroupInfoBottomSheet.show(context, group);
+                            }
+                            break;
+                        }
+                      },
+                      itemBuilder: (menuCtx) {
+                        // Récupère le groupe depuis le contexte valide du popup
+                        final grp = context
+                            .read<GroupChatProvider>()
+                            .getGroupById(_chat.id);
+                        return [
+                          PopupMenuItem(
+                            value: 'search',
+                            child: Row(
+                              children: [
+                                Icon(Icons.search,
+                                    color:
+                                        menuCtx.themeColorsNoWatch.textPrimary,
+                                    size: 20),
+                                const SizedBox(width: 12),
+                                Text('Rechercher',
+                                    style: TextStyle(
+                                        color: menuCtx
+                                            .themeColorsNoWatch.textPrimary)),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'gallery',
+                            child: Row(
+                              children: [
+                                Icon(Icons.photo_library_outlined,
+                                    color:
+                                        menuCtx.themeColorsNoWatch.textPrimary,
+                                    size: 20),
+                                const SizedBox(width: 12),
+                                Text('Galerie de médias',
+                                    style: TextStyle(
+                                        color: menuCtx
+                                            .themeColorsNoWatch.textPrimary)),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'settings',
+                            child: Row(
+                              children: [
+                                Icon(Icons.settings_outlined,
+                                    color:
+                                        menuCtx.themeColorsNoWatch.textPrimary,
+                                    size: 20),
+                                const SizedBox(width: 12),
+                                Text('Paramètres',
+                                    style: TextStyle(
+                                        color: menuCtx
+                                            .themeColorsNoWatch.textPrimary)),
+                              ],
+                            ),
+                          ),
+                          if (grp != null)
+                            PopupMenuItem(
+                              value: 'group_info',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.info_outline,
+                                      color: menuCtx
+                                          .themeColorsNoWatch.textPrimary,
+                                      size: 20),
+                                  const SizedBox(width: 12),
+                                  Text('Infos du groupe',
+                                      style: TextStyle(
+                                          color: menuCtx
+                                              .themeColorsNoWatch.textPrimary)),
+                                ],
+                              ),
+                            ),
+                        ];
+                      },
+                    );
+                  },
+                ),
+              const SizedBox(width: 4),
+            ],
+          ),
         ),
-        IconButton(
-          icon: const Icon(Icons.videocam),
-          color: context.themeColors.textPrimary,
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Appel vidéo (Simulation)')),
-            );
-          },
-        ),
-        const SizedBox(width: 8),
-      ],
+      ),
     );
   }
 
@@ -743,32 +1129,56 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             if (!isSentByMe) ...[
               GestureDetector(
-                onTap: _showUserProfile,
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      backgroundImage: _getImageProvider(_chat.avatarUrl),
-                      child: _chat.avatarUrl == null || _chat.avatarUrl!.isEmpty
-                          ? Text(_chat.name[0])
-                          : null,
-                      radius: 18,
-                    ),
-                    if (_chat.isOnline)
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: context.themeColors.colorOnline,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                                color: context.themeColors.bgPrimary, width: 2),
+                onTap: () {
+                  // Navigate to profile screen
+                  final profileProvider = context.read<ProfileProvider>();
+                  final profile = profileProvider.getProfileByName(_chat.name);
+                  if (profile != null) {
+                    _navigateToProfile(profile.id);
+                  }
+                },
+                child: Builder(
+                  builder: (context) {
+                    // Get profile ID for hero tag
+                    final profileProvider = context.read<ProfileProvider>();
+                    final profile =
+                        profileProvider.getProfileByName(_chat.name);
+                    final heroTag = profile != null
+                        ? 'profile_avatar_${profile.id}'
+                        : 'profile_avatar_${_chat.id}';
+
+                    return Stack(
+                      children: [
+                        Hero(
+                          tag: heroTag,
+                          child: CircleAvatar(
+                            backgroundImage: _getImageProvider(_chat.avatarUrl),
+                            child: _chat.avatarUrl == null ||
+                                    _chat.avatarUrl!.isEmpty
+                                ? Text(_chat.name[0])
+                                : null,
+                            radius: 18,
                           ),
                         ),
-                      ),
-                  ],
+                        if (_chat.isOnline)
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: context.themeColors.colorOnline,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: context.themeColors.bgPrimary,
+                                    width: 2),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: 6),
@@ -1165,8 +1575,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
     return Container(
       color: context.themeColors.bgSurface,
-      padding: const EdgeInsets.only(left: 8, right: 8, bottom: 8, top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: SafeArea(
+        top: false,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [

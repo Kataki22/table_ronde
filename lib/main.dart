@@ -17,6 +17,12 @@ import 'screens/chat_screen.dart';
 //import 'screens/games_screen.dart';
 import 'utils/app_theme.dart';
 import 'providers/theme_provider.dart';
+import 'providers/group_chat_provider.dart';
+import 'providers/profile_provider.dart';
+import 'providers/message_search_provider.dart';
+import 'providers/conversation_settings_provider.dart';
+import 'providers/media_gallery_provider.dart';
+import 'providers/notification_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,8 +31,16 @@ void main() {
     DeviceOrientation.portraitDown,
   ]);
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => GroupChatProvider()),
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => MessageSearchProvider()),
+        ChangeNotifierProvider(create: (_) => ConversationSettingsProvider()),
+        ChangeNotifierProvider(create: (_) => MediaGalleryProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+      ],
       child: const TableRondeApp(),
     ),
   );

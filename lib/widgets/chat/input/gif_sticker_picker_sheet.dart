@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import '../../../../utils/theme_extensions.dart';
 import '../input/gif_grid_view.dart';
 import '../input/sticker_grid_view.dart';
 import '../../../services/tenor_gif_service.dart';
+import '../../../services/sticker_manager.dart';
 
 class GifStickerPickerSheet extends StatefulWidget {
   final Function(String) onGifSelected;
@@ -26,10 +28,11 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedCategory = 'Trending';
+  String _selectedCategory = 'Mes stickers';
 
   // Categories for the bottom bar
   final List<String> _categories = [
+    'Mes stickers',
     'Trending',
     'Funny',
     'Love',
@@ -41,6 +44,14 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
   @override
   void initState() {
     super.initState();
+    // Initialize sticker manager to ensure stickers are loaded (Mobile/Desktop only)
+    if (!kIsWeb) {
+      StickerManager().initialize().then((_) {
+        if (mounted) setState(() {});
+      });
+    }
+
+    _selectedCategory = kIsWeb ? 'Trending' : 'Mes stickers';
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {}); // Rebuild to hide/show header based on index
@@ -63,8 +74,14 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
   void _onCategorySelected(String category) {
     setState(() {
       _selectedCategory = category;
-      _searchQuery = category == 'Trending' ? '' : category;
-      _searchController.text = _searchQuery;
+      // If "Mes stickers" or "Trending", clear search
+      if (category == 'Mes stickers' || category == 'Trending') {
+        _searchQuery = category;
+      } else {
+        _searchQuery = category;
+      }
+      _searchController.text =
+          category == 'Trending' || category == 'Mes stickers' ? '' : category;
     });
   }
 
@@ -127,7 +144,7 @@ class _GifStickerPickerSheetState extends State<GifStickerPickerSheet>
                 // Stickers Tab
                 StickerGridView(
                   onStickerSelected: widget.onStickerSelected,
-                  category: _searchQuery.isEmpty ? 'trending' : _searchQuery,
+                  category: _selectedCategory,
                 ),
               ],
             ),
