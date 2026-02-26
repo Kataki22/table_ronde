@@ -7,6 +7,7 @@ import 'package:tableronde_app/providers/group_chat_provider.dart';
 import 'package:tableronde_app/providers/profile_provider.dart';
 import 'package:tableronde_app/screens/groups/group_creation_screen.dart';
 import 'package:tableronde_app/screens/profiles/profile_screen.dart';
+import 'package:tableronde_app/screens/users/all_users_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -113,6 +114,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.people),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AllUsersScreen(),
+                ),
+              );
+            },
+            tooltip: 'Tous les membres',
+          ),
           PopupMenuButton<String>(
             onSelected: (value) {
               // Handle menu selection

@@ -2,27 +2,120 @@ import 'package:flutter/foundation.dart';
 import '../models/profiles/user_profile_model.dart';
 import '../models/profiles/user_activity.dart';
 import '../models/profiles/user_post.dart';
-import '../data/mock_profiles_data.dart';
+import '../models/auth/user_model.dart';
+import '../services/api_service.dart';
 
 /// Provider pour la gestion des profils utilisateurs
 /// Gère l'affichage et l'édition des profils
 class ProfileProvider extends ChangeNotifier {
   // State
   Map<String, UserProfileModel> _profiles = {};
+  Map<String, DateTime> _profileCacheTimes = {};
   UserProfileModel? _currentUserProfile;
   final Set<String> _blockedUsers = {};
+  bool _isLoading = false;
+  String? _error;
 
-  /// Initialise le provider avec les données mockées
-  ProfileProvider() {
-    _loadProfiles();
+  // Cache TTL: 5 minutes
+  static const Duration _cacheTTL = Duration(minutes: 5);
+
+  /// Initialise le provider
+  ProfileProvider();
+
+  // Getters
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  /// Charge tous les profils depuis l'API
+  Future<void> loadProfiles() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final profiles = await ApiService.getProfiles();
+      _profiles = {for (var profile in profiles) profile.id: profile};
+      
+      // Mettre à jour les temps de cache
+      final now = DateTime.now();
+      for (var profile in profiles) {
+        _profileCacheTimes[profile.id] = now;
+      }
+      
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  /// Charge les profils depuis les données mockées
-  void _loadProfiles() {
-    _profiles = Map.from(MockProfilesData.profiles);
-    // Définir le profil de l'utilisateur actuel (user_1 par défaut)
-    _currentUserProfile = _profiles['user_1'];
+  /// Synchronise le profil actuel avec l'utilisateur authentifié
+  void syncWithAuthUser(UserModel? authUser) {
+    if (authUser == null) {
+      _currentUserProfile = null;
+      notifyListeners();
+      return;
+    }
+
+    // Créer ou mettre à jour le profil à partir des données d'authentification
+    final profile = UserProfileModel(
+      id: authUser.id,
+      name: authUser.name,
+      username: authUser.username ?? '@${authUser.name.toLowerCase().replaceAll(' ', '')}',
+      bio: authUser.bio,
+      phone: authUser.phone,
+      avatarUrl: authUser.avatarUrl,
+      createdAt: authUser.createdAt,
+      isOnline: authUser.isOnline,
+      currentActivity: authUser.currentActivity,
+      recentActivities: [],
+      posts: [],
+    );
+
+    _currentUserProfile = profile;
+    _profiles[authUser.id] = profile;
+    _profileCacheTimes[authUser.id] = DateTime.now();
     notifyListeners();
+  }
+
+  /// Charge un profil spécifique avec cache et TTL
+  Future<UserProfileModel?> loadProfile(String userId) async {
+    // Vérifier si le profil est en cache et valide
+    final cachedProfile = _profiles[userId];
+    final cacheTime = _profileCacheTimes[userId];
+    
+    if (cachedProfile != null && cacheTime != null) {
+      final age = DateTime.now().difference(cacheTime);
+      if (age < _cacheTTL) {
+        return cachedProfile;
+      }
+    }
+
+    // Charger depuis l'API
+    try {
+      final profile = await ApiService.getProfile(userId);
+      _profiles[userId] = profile;
+      _profileCacheTimes[userId] = DateTime.now();
+      notifyListeners();
+      return profile;
+    } catch (e) {
+      // Fallback au cache en cas d'erreur
+      if (cachedProfile != null) {
+        return cachedProfile;
+      }
+      _error = e.toString();
+      notifyListeners();
+      return null;
+    }
+  }
+
+  /// Force le rechargement d'un profil
+  Future<UserProfileModel?> refreshProfile(String userId) async {
+    // Invalider le cache
+    _profileCacheTimes.remove(userId);
+    return loadProfile(userId);
   }
 
   // Getters
@@ -97,25 +190,37 @@ class ProfileProvider extends ChangeNotifier {
       }
     }
 
-    // Simuler une latence réseau
-    await Future.delayed(const Duration(milliseconds: 200));
-
-    // Simuler un échec occasionnel (5% de chance)
-    if (DateTime.now().millisecond % 20 == 0) {
-      throw Exception('Impossible de sauvegarder les paramètres');
-    }
-
-    // Mettre à jour le profil
-    _currentUserProfile = _currentUserProfile!.copyWith(
-      bio: bio,
-      avatarUrl: photoUrl,
-      phone: phone,
-    );
-
-    // Mettre à jour dans la map des profils
-    _profiles[_currentUserProfile!.id] = _currentUserProfile!;
-
+    _isLoading = true;
+    _error = null;
     notifyListeners();
+
+    try {
+      // Mettre à jour le profil localement
+      final updatedProfile = _currentUserProfile!.copyWith(
+        bio: bio,
+        avatarUrl: photoUrl,
+        phone: phone,
+      );
+
+      // Envoyer la mise à jour à l'API
+      final savedProfile = await ApiService.updateProfile(
+        _currentUserProfile!.id,
+        updatedProfile,
+      );
+
+      // Mettre à jour le cache
+      _currentUserProfile = savedProfile;
+      _profiles[savedProfile.id] = savedProfile;
+      _profileCacheTimes[savedProfile.id] = DateTime.now();
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
   }
 
   /// Valide le format du numéro de téléphone
@@ -167,10 +272,5 @@ class ProfileProvider extends ChangeNotifier {
   void setCurrentUser(String userId) {
     _currentUserProfile = _profiles[userId];
     notifyListeners();
-  }
-
-  /// Recharge tous les profils depuis les données mockées
-  void reloadProfiles() {
-    _loadProfiles();
   }
 }

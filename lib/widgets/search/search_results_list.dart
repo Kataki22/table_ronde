@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/search/search_result.dart';
 import '../../providers/message_search_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../utils/theme_extensions.dart';
 import '../../utils/accessibility_helpers.dart';
 
@@ -226,6 +227,10 @@ class _SearchResultTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = result.message;
     
+    // Get current user ID from AuthProvider
+    final authProvider = context.read<AuthProvider>();
+    final currentUserId = authProvider.currentUser?.id ?? '';
+    
     // Formater le timestamp
     final hour = message.timestamp.hour.toString().padLeft(2, '0');
     final minute = message.timestamp.minute.toString().padLeft(2, '0');
@@ -269,7 +274,7 @@ class _SearchResultTile extends StatelessWidget {
               children: [
                 // Expéditeur
                 Text(
-                  message.isSentByMe ? 'Vous' : 'Contact',
+                  message.isSentBy(currentUserId) ? 'Vous' : 'Contact',
                   style: TextStyle(
                     color: context.themeColors.textPrimary,
                     fontSize: 14,

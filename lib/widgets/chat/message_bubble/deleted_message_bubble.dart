@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../models/chat_model.dart';
 import '../../../utils/theme_extensions.dart';
+import '../../../providers/auth_provider.dart';
 
 /// Widget to display a deleted message bubble
 class DeletedMessageBubble extends StatelessWidget {
@@ -13,7 +15,9 @@ class DeletedMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSentByMe = message.isSentByMe;
+    final authProvider = context.read<AuthProvider>();
+    final currentUserId = authProvider.currentUser?.id ?? '';
+    final isSentByMe = message.isSentBy(currentUserId);
 
     return Align(
       alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,

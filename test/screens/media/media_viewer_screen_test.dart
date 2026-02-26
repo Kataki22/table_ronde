@@ -20,7 +20,7 @@ void main() {
         MediaItem(
           id: 'photo_1',
           type: MediaType.photo,
-          url: 'assets/images/placeholder.png',
+          url: 'assets/images/test.png',
           timestamp: DateTime.now().subtract(const Duration(days: 1)),
           senderId: 'user_1',
           senderName: 'Alice Dupont',
@@ -29,7 +29,7 @@ void main() {
         MediaItem(
           id: 'photo_2',
           type: MediaType.photo,
-          url: 'assets/images/placeholder.png',
+          url: 'assets/images/test.png',
           timestamp: DateTime.now().subtract(const Duration(days: 2)),
           senderId: 'user_2',
           senderName: 'Bob Martin',
@@ -38,8 +38,8 @@ void main() {
         MediaItem(
           id: 'video_1',
           type: MediaType.video,
-          url: 'assets/images/placeholder.png',
-          thumbnailUrl: 'assets/images/placeholder.png',
+          url: 'assets/images/test.png',
+          thumbnailUrl: 'assets/images/test.png',
           timestamp: DateTime.now().subtract(const Duration(days: 3)),
           senderId: 'user_3',
           senderName: 'Charlie Dubois',

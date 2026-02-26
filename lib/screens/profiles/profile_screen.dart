@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/profiles/user_profile_model.dart';
 import '../../providers/profile_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/profiles/profile_header.dart';
 import '../../widgets/profiles/action_buttons.dart';
 import '../../widgets/profiles/activity_card.dart';
@@ -71,6 +72,11 @@ class _ProfileScreenState extends State<ProfileScreen>
 
     // Start animations
     _animationController.forward();
+
+    // Load profile data from API
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileProvider>().loadProfile(widget.userId);
+    });
   }
 
   @override
@@ -85,13 +91,90 @@ class _ProfileScreenState extends State<ProfileScreen>
       builder: (context, profileProvider, child) {
         final profile = profileProvider.getProfile(widget.userId);
         final currentUser = profileProvider.currentUserProfile;
+        final isLoading = profileProvider.isLoading;
+        final error = profileProvider.error;
+        
+        // Handle loading state
+        if (isLoading && profile == null) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Profil'),
+              backgroundColor: context.themeColors.bgSecondary,
+              elevation: 0,
+            ),
+            backgroundColor: context.themeColors.bgPrimary,
+            body: Center(
+              child: CircularProgressIndicator(
+                color: context.themeColors.colorPrimary,
+              ),
+            ),
+          );
+        }
+        
+        // Handle error state
+        if (error != null && profile == null) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Profil'),
+              backgroundColor: context.themeColors.bgSecondary,
+              elevation: 0,
+            ),
+            backgroundColor: context.themeColors.bgPrimary,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: context.themeColors.colorDanger,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Erreur de chargement',
+                    style: AppTheme.bodyLarge.copyWith(
+                      color: context.themeColors.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      error,
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: context.themeColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<ProfileProvider>().loadProfile(widget.userId);
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Réessayer'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: context.themeColors.colorPrimary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
         
         // Handle case where profile doesn't exist
         if (profile == null) {
           return Scaffold(
             appBar: AppBar(
               title: const Text('Profil'),
+              backgroundColor: context.themeColors.bgSecondary,
+              elevation: 0,
             ),
+            backgroundColor: context.themeColors.bgPrimary,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -127,10 +210,23 @@ class _ProfileScreenState extends State<ProfileScreen>
             title: Text(isCurrentUser ? 'Mon profil' : 'Profil'),
             backgroundColor: context.themeColors.bgSecondary,
             elevation: 0,
+            actions: isCurrentUser
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.logout),
+                      tooltip: 'Déconnexion',
+                      onPressed: () => _handleLogout(context),
+                    ),
+                  ]
+                : null,
           ),
-          body: ResponsiveLayout.shouldUseDesktopLayout(context)
-              ? _buildDesktopLayout(context, profile, isCurrentUser)
-              : _buildMobileLayout(context, profile, isCurrentUser),
+          body: RefreshIndicator(
+            onRefresh: () => profileProvider.refreshProfile(widget.userId),
+            color: context.themeColors.colorPrimary,
+            child: ResponsiveLayout.shouldUseDesktopLayout(context)
+                ? _buildDesktopLayout(context, profile, isCurrentUser)
+                : _buildMobileLayout(context, profile, isCurrentUser),
+          ),
         );
       },
     );
@@ -562,6 +658,78 @@ class _ProfileScreenState extends State<ProfileScreen>
       const SnackBar(
         content: Text('Ouvrir commentaires'),
         duration: Duration(seconds: 1),
+      ),
+    );
+  }
+
+  void _handleLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Déconnexion'),
+        content: const Text(
+          'Êtes-vous sûr de vouloir vous déconnecter ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              
+              // Show loading indicator
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => Center(
+                  child: CircularProgressIndicator(
+                    color: context.themeColors.colorPrimary,
+                  ),
+                ),
+              );
+
+              try {
+                await context.read<AuthProvider>().logout();
+                
+                if (context.mounted) {
+                  // Close loading dialog
+                  Navigator.of(context).pop();
+                  
+                  // Navigate to login screen and clear navigation stack
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/login',
+                    (route) => false,
+                  );
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Déconnexion réussie'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  // Close loading dialog
+                  Navigator.of(context).pop();
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Erreur: ${e.toString()}'),
+                      backgroundColor: context.themeColors.colorDanger,
+                    ),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: context.themeColors.colorDanger,
+            ),
+            child: const Text('Déconnecter'),
+          ),
+        ],
       ),
     );
   }

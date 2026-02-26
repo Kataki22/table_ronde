@@ -8,6 +8,7 @@ import '../../widgets/settings/confirmation_dialog.dart';
 import '../../utils/theme_extensions.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_theme_data.dart';
+import '../../utils/avatar_helper.dart';
 
 /// Screen affichant la liste complète des membres d'un groupe
 ///
@@ -267,13 +268,13 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
     final existingMemberIds = group.members.map((m) => m.userId).toSet();
     final availableUsers = [
       _MockUser('user_2', 'T4zor', 'assets/images/Avatar2.png'),
-      _MockUser('user_3', 'Tk-Porky', 'assets/images/Avatar3.png'),
-      _MockUser('user_4', 'Sophie Martin', 'assets/images/Avatar4.png'),
-      _MockUser('user_5', 'Lucas Dubois', 'assets/images/Avatar5.png'),
-      _MockUser('user_6', 'ProGamer42', 'assets/images/Avatar6.png'),
-      _MockUser('user_7', 'NinjaKiller', 'assets/images/Avatar7.png'),
-      _MockUser('user_8', 'Emma Leroy', 'assets/images/Avatar8.png'),
-      _MockUser('user_9', 'MaxPower', 'assets/images/Avatar9.png'),
+      _MockUser('user_3', 'Tk-Porky', AvatarHelper.getRandomAvatar()),
+      _MockUser('user_4', 'Sophie Martin', AvatarHelper.getRandomAvatar()),
+      _MockUser('user_5', 'Lucas Dubois', AvatarHelper.getRandomAvatar()),
+      _MockUser('user_6', 'ProGamer42', AvatarHelper.getRandomAvatar()),
+      _MockUser('user_7', 'NinjaKiller', AvatarHelper.getRandomAvatar()),
+      _MockUser('user_8', 'Emma Leroy', AvatarHelper.getRandomAvatar()),
+      _MockUser('user_9', 'MaxPower', AvatarHelper.getRandomAvatar()),
       _MockUser('user_10', 'Julie Bernard', 'assets/images/Avatar1.png'),
     ].where((user) => !existingMemberIds.contains(user.id)).toList();
 

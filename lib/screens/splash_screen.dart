@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import '../utils/app_theme.dart';
 import '../utils/theme_extensions.dart';
+import '../providers/auth_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -41,9 +43,28 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    Timer(const Duration(seconds: 3), () {
+    // Initialiser l'authentification et vérifier la session
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // Attendre l'animation
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    // Initialiser l'AuthProvider
+    final authProvider = context.read<AuthProvider>();
+    await authProvider.initialize();
+
+    if (!mounted) return;
+
+    // Naviguer vers l'écran approprié
+    if (authProvider.isAuthenticated) {
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else {
       Navigator.of(context).pushReplacementNamed('/welcome');
-    });
+    }
   }
 
   @override

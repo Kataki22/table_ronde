@@ -85,11 +85,15 @@ class _PostCardState extends State<PostCard> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          widget.post['author'],
-                          style: AppTheme.bodyLarge.copyWith(
-                            color: context.themeColors.textPrimary,
-                            fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: Text(
+                            widget.post['author'],
+                            style: AppTheme.bodyLarge.copyWith(
+                              color: context.themeColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -99,10 +103,14 @@ class _PostCardState extends State<PostCard> {
                           color: context.themeColors.colorPrimary,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          widget.post['username'],
-                          style: AppTheme.bodySmall.copyWith(
-                            color: context.themeColors.textSecondary,
+                        Flexible(
+                          child: Text(
+                            widget.post['username'],
+                            style: AppTheme.bodySmall.copyWith(
+                              color: context.themeColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

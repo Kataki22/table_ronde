@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/media_gallery_provider.dart';
 import 'media_gallery_bottom_sheet.dart';
 
 /// Exemple d'utilisation de MediaGalleryBottomSheet
@@ -46,13 +44,8 @@ class MediaGalleryExample extends StatelessWidget {
 
   /// Ouvre le bottom sheet de la galerie de médias
   void _openMediaGallery(BuildContext context) {
-    // S'assurer que le provider est initialisé
-    final provider = context.read<MediaGalleryProvider>();
-    if (!provider.isInitialized) {
-      provider.initialize();
-    }
-
-    // Ouvrir le bottom sheet
+    // Note: MediaGalleryBottomSheet will call loadMediaForChat(chatId) when opened
+    // No need to initialize the provider manually
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -75,12 +68,8 @@ class MediaGalleryExample extends StatelessWidget {
 /// )
 /// ```
 void showMediaGallery(BuildContext context, String chatId) {
-  // S'assurer que le provider est initialisé
-  final provider = context.read<MediaGalleryProvider>();
-  if (!provider.isInitialized) {
-    provider.initialize();
-  }
-
+  // Note: MediaGalleryBottomSheet will call loadMediaForChat(chatId) when opened
+  // The provider loads data on-demand, no manual initialization needed
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,

@@ -79,4 +79,39 @@ class MediaItem {
       return '${minutes}:${secs.toString().padLeft(2, '0')}';
     }
   }
+
+  /// Creates a MediaItem from JSON
+  factory MediaItem.fromJson(Map<String, dynamic> json) {
+    return MediaItem(
+      id: json['id'] as String,
+      type: MediaType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => MediaType.photo,
+      ),
+      url: json['url'] as String,
+      thumbnailUrl: json['thumbnailUrl'] as String?,
+      fileName: json['fileName'] as String?,
+      fileSize: json['fileSize'] as int?,
+      duration: json['duration'] as int?,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      senderId: json['senderId'] as String,
+      senderName: json['senderName'] as String,
+    );
+  }
+
+  /// Converts this MediaItem to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'type': type.name,
+      'url': url,
+      'thumbnailUrl': thumbnailUrl,
+      'fileName': fileName,
+      'fileSize': fileSize,
+      'duration': duration,
+      'timestamp': timestamp.toIso8601String(),
+      'senderId': senderId,
+      'senderName': senderName,
+    };
+  }
 }

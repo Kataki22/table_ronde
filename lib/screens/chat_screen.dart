@@ -13,11 +13,6 @@ import '../utils/app_theme.dart';
 import '../utils/theme_extensions.dart';
 import '../models/chat_model.dart';
 import '../data/sample_chats_data.dart';
-import '../widgets/chat/sticker_model.dart';
-import '../models/gif_model.dart';
-import '../widgets/chat/sticker_picker.dart';
-import '../widgets/chat/gif_picker.dart';
-import '../widgets/chat/user_profile_sheet.dart';
 import '../widgets/video_player_screen.dart';
 import '../widgets/chat/message_media/sticker_message.dart';
 import '../widgets/chat/message_media/image_message.dart';
@@ -29,6 +24,7 @@ import '../widgets/chat/message_media/gif_message.dart';
 import '../widgets/chat/message_bubble/deleted_message_bubble.dart';
 import '../widgets/chat/input/gif_sticker_picker_sheet.dart';
 import '../providers/group_chat_provider.dart';
+import '../providers/auth_provider.dart';
 import '../screens/groups/group_info_bottom_sheet.dart';
 import '../providers/profile_provider.dart';
 import '../screens/profiles/profile_screen.dart';
@@ -62,6 +58,13 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isTyping = false;
   bool _hasText = false;
 
+  // LIMITATION: L'application utilise actuellement un userId hardcodé dans GroupChatProvider.
+  // Pour permettre de se connecter avec différents comptes et répondre aux messages:
+  // 1. Implémenter un système d'authentification complet (voir AUTH_GUIDE.md)
+  // 2. Remplacer le userId hardcodé par l'utilisateur authentifié
+  // 3. Persister les messages dans db.json via l'API
+  // 4. Ajouter la gestion des sessions utilisateur
+
   // ── edit / reply state ───────────────────────────────────────────────────
   MessageModel? _replyTo; // message currently being replied to
   MessageModel? _editingMsg; // message currently being edited
@@ -77,8 +80,14 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _audioRecorder = AudioRecorder();
-    _loadSampleMessages();
     _messageController.addListener(_onTextChanged);
+    
+    // Load data from API after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final groupProvider = context.read<GroupChatProvider>();
+      // Load groups first
+      groupProvider.loadGroups();
+    });
   }
 
   @override
@@ -115,6 +124,31 @@ class _ChatScreenState extends State<ChatScreen> {
       createdAt: args.createdAt ?? DateTime(2026, 2, 1),
       currentActivity: args.currentActivity ?? 'Joue à Chess.com',
     );
+
+    // Load messages for this chat from API
+    _loadMessagesFromApi();
+  }
+
+  /// Load messages from API for the current chat
+  Future<void> _loadMessagesFromApi() async {
+    final groupProvider = context.read<GroupChatProvider>();
+    
+    try {
+      await groupProvider.loadMessages(_chat.id);
+      // Les messages sont maintenant dans le provider, pas besoin de les copier localement
+      // La liste _messages locale est maintenant synchronisée via le Consumer dans build()
+      if (mounted) {
+        _scrollToBottom();
+      }
+    } catch (e) {
+      // Si l'API échoue, charger les données d'exemple en fallback
+      if (mounted) {
+        setState(() {
+          _messages.clear();
+          _messages.addAll(SampleChatsData.getSampleMessages('default'));
+        });
+      }
+    }
   }
 
   void _onTextChanged() {
@@ -148,16 +182,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // SAMPLE DATA
-  // ──────────────────────────────────────────────────────────────────────────
-
-  void _loadSampleMessages() {
-    // Charger les messages depuis le service de données
-    // Utiliser l'ID du chat courant si disponible, sinon utiliser un ID par défaut
-    _messages.addAll(SampleChatsData.getSampleMessages('default'));
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
   // SEND / EDIT ACTIONS
   // ──────────────────────────────────────────────────────────────────────────
 
@@ -175,23 +199,46 @@ class _ChatScreenState extends State<ChatScreen> {
       return;
     }
 
-    setState(() {
-      _messages.add(
-        MessageModel(
-          text: text,
-          isSentByMe: true,
-          timestamp: DateTime.now(),
-          isRead: false,
-          replyToId: _replyTo?.id,
-        ),
+    // Récupérer l'utilisateur actuel depuis AuthProvider
+    final authProvider = context.read<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur: Utilisateur non connecté')),
       );
+      return;
+    }
 
+    // Créer le nouveau message avec tous les champs requis
+    final newMessage = MessageModel(
+      id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+      text: text,
+      timestamp: DateTime.now(),
+      isRead: false,
+      replyToId: _replyTo?.id,
+      chatId: _chat.id,
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+    );
+
+    // Envoyer via le provider pour synchronisation avec l'API
+    final groupProvider = context.read<GroupChatProvider>();
+    groupProvider.sendMessage(_chat.id, newMessage);
+
+    setState(() {
       _replyTo = null;
       _chat.lastMessage = text;
       _chat.lastMessageTime = DateTime.now();
     });
     _messageController.clear();
     _scrollToBottom();
+  }
+
+  /// Helper to get current user ID from AuthProvider
+  String? _getCurrentUserId() {
+    final authProvider = context.read<AuthProvider>();
+    return authProvider.currentUser?.id;
   }
 
   void _deleteMessage(MessageModel msg) {
@@ -224,151 +271,6 @@ class _ChatScreenState extends State<ChatScreen> {
       _replyTo = null;
       _messageController.clear();
     });
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // STICKER / GIF
-  // ──────────────────────────────────────────────────────────────────────────
-
-  Future<void> _openStickerPicker() async {
-    final StickerModel? sticker = await showModalBottomSheet<StickerModel>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const StickerPicker(),
-    );
-    if (sticker != null && mounted) {
-      setState(() {
-        _messages.add(
-          MessageModel(
-            text: sticker.name,
-            isSentByMe: true,
-            timestamp: DateTime.now(),
-            type: MessageType.sticker,
-            stickerUrl: sticker.assetPath,
-            replyToId: _replyTo?.id,
-          ),
-        );
-        _replyTo = null;
-      });
-      _scrollToBottom();
-    }
-  }
-
-  Future<void> _openGifPicker() async {
-    final GifModel? gif = await showModalBottomSheet<GifModel>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const GifPicker(),
-    );
-    if (gif != null && mounted) {
-      setState(() {
-        _messages.add(
-          MessageModel(
-            text: gif.title,
-            isSentByMe: true,
-            timestamp: DateTime.now(),
-            type: MessageType.gif,
-            gifUrl: gif.assetPath,
-            replyToId: _replyTo?.id,
-          ),
-        );
-        _replyTo = null;
-      });
-      _scrollToBottom();
-    }
-  }
-
-  // ──────────────────────────────────────────────────────────────────────────
-  // MEDIA & FUN PICKER (nouveau menu +)
-  // ──────────────────────────────────────────────────────────────────────────
-
-  void _showMediaAndFunPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: BoxDecoration(
-            color: context.themeColors.bgSurfaceDark,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: context.themeColors.textDisabled,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _funOption(
-                      icon: Icons.sticky_note_2_rounded,
-                      label: "Stickers",
-                      color: Colors.purpleAccent,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _openStickerPicker();
-                      },
-                    ),
-                    _funOption(
-                      icon: Icons.gif_box_rounded,
-                      label: "GIFs",
-                      color: Colors.orangeAccent,
-                      onTap: () {
-                        Navigator.pop(context);
-                        _openGifPicker();
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _funOption({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 70,
-            height: 70,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(icon, color: color, size: 36),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: context.themeColors.textPrimary.withOpacity(0.7),
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   // ──────────────────────────────────────────────────────────────────────────
@@ -426,16 +328,30 @@ class _ChatScreenState extends State<ChatScreen> {
     required String name,
   }) {
     if (!mounted) return;
+    
+    // Get current user
+    final authProvider = context.read<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur: Utilisateur non connecté')),
+      );
+      return;
+    }
+    
     setState(() {
       _messages.add(
         MessageModel(
           text: name,
-          isSentByMe: true,
           timestamp: DateTime.now(),
           type: type,
           attachmentUrl: url,
           attachmentName: name,
           replyToId: _replyTo?.id,
+          chatId: _chat.id,
+          senderId: currentUser.id,
+          senderName: currentUser.name,
         ),
       );
 
@@ -453,14 +369,6 @@ class _ChatScreenState extends State<ChatScreen> {
   // ──────────────────────────────────────────────────────────────────────────
   // USER PROFILE
   // ──────────────────────────────────────────────────────────────────────────
-
-  void _showUserProfile() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) => UserProfileSheet(chat: _chat),
-    );
-  }
 
   /// Navigate to the full profile screen for a user
   void _navigateToProfile(String userId) {
@@ -489,7 +397,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _handleSearchChanged(String query) {
     final searchProvider = context.read<MessageSearchProvider>();
-    searchProvider.search(query, _chat.id, _messages);
+    final groupProvider = context.read<GroupChatProvider>();
+    final messages = groupProvider.getGroupMessages(_chat.id);
+    final displayMessages = messages.isNotEmpty ? messages : _messages;
+    searchProvider.search(query, _chat.id, displayMessages);
   }
 
   void _handleSearchResultTap(SearchResult result) {
@@ -504,7 +415,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Scroller vers le message
     final messageIndex = result.matchIndex;
-    if (messageIndex >= 0 && messageIndex < _messages.length) {
+    final groupProvider = context.read<GroupChatProvider>();
+    final messages = groupProvider.getGroupMessages(_chat.id);
+    final displayMessages = messages.isNotEmpty ? messages : _messages;
+    
+    if (messageIndex >= 0 && messageIndex < displayMessages.length) {
       // Calculer la position approximative dans la liste
       final itemHeight = 100.0; // Hauteur approximative d'un message
       final targetPosition = messageIndex * itemHeight;
@@ -588,6 +503,16 @@ class _ChatScreenState extends State<ChatScreen> {
     final settings = settingsProvider.getSettings(_chat.id);
     final wallpaperUrl = settings.wallpaperUrl;
 
+    // Watch GroupChatProvider for loading and error states
+    final groupProvider = context.watch<GroupChatProvider>();
+    final isLoading = groupProvider.isLoading;
+    final error = groupProvider.error;
+    
+    // Utiliser les messages du provider au lieu de la liste locale
+    final messages = groupProvider.getGroupMessages(_chat.id);
+    // Fallback sur la liste locale si le provider n'a pas de messages (pour compatibilité)
+    final displayMessages = messages.isNotEmpty ? messages : _messages;
+
     return Scaffold(
       backgroundColor:
           wallpaperUrl == null ? context.themeColors.bgPrimary : null,
@@ -608,35 +533,90 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: Stack(
                 children: [
-                  // Chat principal
-                  Column(
-                    children: [
-                      Expanded(
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 16),
-                          itemCount: _messages.length,
-                          itemBuilder: (context, index) {
-                            final message = _messages[index];
-                            final showDateSep = index == 0 ||
-                                !_isSameDay(message.timestamp,
-                                    _messages[index - 1].timestamp);
-                            return Column(
-                              children: [
-                                if (showDateSep)
-                                  _buildDateSeparator(message.timestamp),
-                                _buildMessageBubble(message),
-                              ],
-                            );
-                          },
-                        ),
+                  // Loading state
+                  if (isLoading && displayMessages.isEmpty)
+                    Center(
+                      child: CircularProgressIndicator(
+                        color: context.themeColors.colorPrimary,
                       ),
-                      if (_replyTo != null || _editingMsg != null)
-                        _buildReplyOrEditBar(),
-                      _buildMessageInput(),
-                    ],
-                  ),
+                    )
+                  // Error state
+                  else if (error != null && displayMessages.isEmpty)
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: context.themeColors.colorDanger,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Erreur de chargement',
+                            style: AppTheme.bodyLarge.copyWith(
+                              color: context.themeColors.textPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: Text(
+                              error,
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: context.themeColors.textSecondary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () => _loadMessagesFromApi(),
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Réessayer'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: context.themeColors.colorPrimary,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  // Chat principal
+                  else
+                    Column(
+                      children: [
+                        Expanded(
+                          child: RefreshIndicator(
+                            onRefresh: () => _loadMessagesFromApi(),
+                            color: context.themeColors.colorPrimary,
+                            child: ListView.builder(
+                              controller: _scrollController,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 16),
+                              itemCount: displayMessages.length,
+                              itemBuilder: (context, index) {
+                                final message = displayMessages[index];
+                                final showDateSep = index == 0 ||
+                                    !_isSameDay(message.timestamp,
+                                        displayMessages[index - 1].timestamp);
+                                return Column(
+                                  children: [
+                                    if (showDateSep)
+                                      _buildDateSeparator(message.timestamp),
+                                    _buildMessageBubble(message),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        if (_replyTo != null || _editingMsg != null)
+                          _buildReplyOrEditBar(),
+                        _buildMessageInput(),
+                      ],
+                    ),
 
                   // Overlay de résultats de recherche
                   if (_isSearchOpen)
@@ -663,8 +643,9 @@ class _ChatScreenState extends State<ChatScreen> {
       color: context.themeColors.bgSurface,
       child: SafeArea(
         bottom: false,
-        child: SizedBox(
-          height: 56,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          constraints: const BoxConstraints(minHeight: 56),
           child: Row(
             children: [
               IconButton(
@@ -703,111 +684,99 @@ class _ChatScreenState extends State<ChatScreen> {
                         },
                         child: Row(
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                // Navigate to profile screen for 1-to-1 chats
-                                final groupProvider =
-                                    context.read<GroupChatProvider>();
-                                final group =
-                                    groupProvider.getGroupById(_chat.id);
+                            Builder(
+                              builder: (context) {
+                                // Get profile ID for hero tag
+                                final profileProvider =
+                                    context.read<ProfileProvider>();
+                                final profile = profileProvider
+                                    .getProfileByName(_chat.name);
+                                final heroTag = profile != null
+                                    ? 'profile_avatar_${profile.id}'
+                                    : 'profile_avatar_${_chat.id}';
 
-                                if (group == null) {
-                                  // It's a 1-to-1 chat, navigate to profile
-                                  final profileProvider =
-                                      context.read<ProfileProvider>();
-                                  final profile = profileProvider
-                                      .getProfileByName(_chat.name);
-                                  if (profile != null) {
-                                    _navigateToProfile(profile.id);
-                                  }
-                                }
-                              },
-                              child: Builder(
-                                builder: (context) {
-                                  // Get profile ID for hero tag
-                                  final profileProvider =
-                                      context.read<ProfileProvider>();
-                                  final profile = profileProvider
-                                      .getProfileByName(_chat.name);
-                                  final heroTag = profile != null
-                                      ? 'profile_avatar_${profile.id}'
-                                      : 'profile_avatar_${_chat.id}';
-
-                                  return Stack(
-                                    children: [
-                                      Hero(
-                                        tag: heroTag,
-                                        child: CircleAvatar(
-                                          backgroundImage: _getImageProvider(
-                                              _chat.avatarUrl),
-                                          child: _chat.avatarUrl == null ||
-                                                  _chat.avatarUrl!.isEmpty
-                                              ? Text(_chat.name[0])
-                                              : null,
-                                          radius: 20,
-                                        ),
+                                return Stack(
+                                  children: [
+                                    Hero(
+                                      tag: heroTag,
+                                      child: CircleAvatar(
+                                        backgroundImage:
+                                            _getImageProvider(_chat.avatarUrl),
+                                        child: _chat.avatarUrl == null ||
+                                                _chat.avatarUrl!.isEmpty
+                                            ? Text(_chat.name[0])
+                                            : null,
+                                        radius: 20,
                                       ),
-                                      if (_chat.isOnline)
-                                        Positioned(
-                                          bottom: 0,
-                                          right: 0,
-                                          child: Container(
-                                            width: 12,
-                                            height: 12,
-                                            decoration: BoxDecoration(
-                                              color: context
-                                                  .themeColors.colorOnline,
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                  color: context
-                                                      .themeColors.bgSurface,
-                                                  width: 2),
-                                            ),
+                                    ),
+                                    if (_chat.isOnline)
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          width: 12,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            color:
+                                                context.themeColors.colorOnline,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: context
+                                                    .themeColors.bgSurface,
+                                                width: 2),
                                           ),
                                         ),
-                                    ],
-                                  );
-                                },
-                              ),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        _chat.name,
-                                        style: AppTheme.bodyLarge.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color:
-                                              context.themeColors.textPrimary,
-                                        ),
-                                      ),
-                                      if (_isTyping)
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
                                         Text(
-                                          'typing...',
-                                          style: AppTheme.bodySmall.copyWith(
-                                            color: context
-                                                .themeColors.colorPrimary,
-                                            fontStyle: FontStyle.italic,
+                                          _chat.name,
+                                          style: AppTheme.bodyLarge.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                context.themeColors.textPrimary,
                                           ),
-                                        )
-                                      else
-                                        Text(
-                                          _chat.isOnline
-                                              ? 'online'
-                                              : 'last seen recently',
-                                          style: AppTheme.bodySmall.copyWith(
-                                            color: context
-                                                .themeColors.textSecondary,
-                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                    ],
+                                        if (_isTyping)
+                                          Text(
+                                            'typing...',
+                                            style: AppTheme.bodySmall.copyWith(
+                                              color: context
+                                                  .themeColors.colorPrimary,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          )
+                                        else
+                                          Text(
+                                            _chat.isOnline
+                                                ? 'online'
+                                                : 'last seen recently',
+                                            style: AppTheme.bodySmall.copyWith(
+                                              color: context
+                                                  .themeColors.textSecondary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                   const SizedBox(width: 6),
                                   const Icon(Icons.chevron_right, size: 20),
@@ -1013,6 +982,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildReplyOrEditBar() {
     final isReply = _replyTo != null;
     final msg = isReply ? _replyTo! : _editingMsg!;
+    final currentUserId = _getCurrentUserId() ?? '';
 
     return Container(
       color: context.themeColors.bgSurface,
@@ -1036,7 +1006,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 Text(
                   isReply
-                      ? 'Replying to ${msg.isSentByMe ? "you" : _chat.name}'
+                      ? 'Replying to ${msg.isSentBy(currentUserId) ? "you" : _chat.name}'
                       : 'Editing message',
                   style: TextStyle(
                     color: isReply
@@ -1102,21 +1072,11 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildMessageBubble(MessageModel message) {
     if (message.isDeleted) return _buildDeletedBubble(message);
 
-    final isSentByMe = message.isSentByMe;
+    final currentUserId = _getCurrentUserId() ?? '';
+    final isSentByMe = message.isSentBy(currentUserId);
 
-    MessageModel? repliedMsg;
-    if (message.replyToId != null) {
-      repliedMsg = _messages.firstWhere(
-        (m) => m.id == message.replyToId,
-        orElse: () => MessageModel(
-          id: 'ghost',
-          text: 'Original message was deleted',
-          isSentByMe: false,
-          timestamp: DateTime.now(),
-          isDeleted: true,
-        ),
-      );
-    }
+    // Note: Le message de réponse (repliedMsg) pourrait être affiché ici
+    // mais n'est pas encore implémenté dans l'UI actuelle
 
     return Align(
       alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -1423,9 +1383,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildDocumentBody(MessageModel msg) {
+    final currentUserId = _getCurrentUserId() ?? '';
     return DocumentMessage(
       message: msg,
-      isSentByMe: msg.isSentByMe,
+      isSentByMe: msg.isSentBy(currentUserId),
     );
   }
 
@@ -1440,6 +1401,9 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showMessageOptions(MessageModel msg) {
     if (msg.isDeleted) return;
 
+    final currentUserId = _getCurrentUserId() ?? '';
+    final isSentByMe = msg.isSentBy(currentUserId);
+
     final actions = <_OptionItem>[
       _OptionItem(Icons.reply, 'Répondre', () => _startReply(msg)),
       _OptionItem(Icons.copy, 'Copier', () {
@@ -1451,10 +1415,10 @@ class _ChatScreenState extends State<ChatScreen> {
       }),
     ];
 
-    if (msg.isSentByMe && msg.type == MessageType.text) {
+    if (isSentByMe && msg.type == MessageType.text) {
       actions.add(_OptionItem(Icons.edit, 'Modifier', () => _startEdit(msg)));
     }
-    if (msg.isSentByMe) {
+    if (isSentByMe) {
       actions.add(_OptionItem(
           Icons.delete_outline, 'Supprimer', () => _deleteMessage(msg),
           isDestructive: true));
@@ -1548,16 +1512,29 @@ class _ChatScreenState extends State<ChatScreen> {
   // ──────────────────────────────────────────────────────────────────────────
 
   void _sendMediaMessage(String path, MessageType type) {
+    // Get current user
+    final authProvider = context.read<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur: Utilisateur non connecté')),
+      );
+      return;
+    }
+    
     setState(() {
       _messages.add(
         MessageModel(
           text: type == MessageType.sticker ? 'Sticker' : 'GIF',
-          isSentByMe: true,
           timestamp: DateTime.now(),
           type: type,
           stickerUrl: type == MessageType.sticker ? path : null,
           gifUrl: type == MessageType.gif ? path : null,
           isRead: false,
+          chatId: _chat.id,
+          senderId: currentUser.id,
+          senderName: currentUser.name,
         ),
       );
       _chat.lastMessage = type == MessageType.sticker ? 'Sticker' : 'GIF';
@@ -1895,16 +1872,29 @@ class _ChatScreenState extends State<ChatScreen> {
   void _sendVoiceMessage(String path, int duration) {
     if (duration < 1) return; // Don't send empty messages
 
+    // Get current user
+    final authProvider = context.read<AuthProvider>();
+    final currentUser = authProvider.currentUser;
+    
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Erreur: Utilisateur non connecté')),
+      );
+      return;
+    }
+
     setState(() {
       _messages.add(
         MessageModel(
           text: '', // Voice messages don't need text
-          isSentByMe: true,
           timestamp: DateTime.now(),
           type: MessageType.voice,
           voiceDuration: duration,
           attachmentUrl: path, // Use attachmentUrl to store local path
           isRead: false,
+          chatId: _chat.id,
+          senderId: currentUser.id,
+          senderName: currentUser.name,
         ),
       );
       _chat.lastMessage = 'Vocal';

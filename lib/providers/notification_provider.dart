@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/notifications/notification_model.dart';
 import '../models/notifications/notification_type.dart';
-import '../data/mock_notifications_data.dart';
+import '../services/api_service.dart';
 
 /// Provider pour le centre de notifications
 /// Gère l'affichage, le filtrage et les actions sur les notifications
@@ -19,14 +19,39 @@ class NotificationProvider extends ChangeNotifier {
     NotificationType.announcement: true,
     NotificationType.activity: true,
   };
+  bool _isLoading = false;
+  String? _error;
 
   // Clé pour la persistance
   static const String _settingsKey = 'notification_settings';
 
-  /// Constructeur - charge les données mockées et les paramètres
+  /// Constructeur - charge les paramètres
   NotificationProvider() {
-    _generateMockNotifications();
     _loadSettings();
+  }
+
+  // Getters
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+
+  /// Charge les notifications d'un utilisateur depuis l'API
+  Future<void> loadNotifications(String userId) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _notifications = await ApiService.getNotifications(userId);
+      // Trier par timestamp décroissant (plus récent en premier)
+      _notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   // Getters
@@ -45,7 +70,10 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   /// Nombre de notifications non lues
-  int get unreadCount => _notifications.where((notif) => !notif.isRead).length;
+  int get unreadCount {
+    final count = _notifications.where((notif) => !notif.isRead).length;
+    return count < 0 ? 0 : count; // S'assurer que le compte ne soit jamais négatif
+  }
 
   /// Paramètres de notifications par type
   Map<NotificationType, bool> get notificationSettings =>
@@ -56,12 +84,22 @@ class NotificationProvider extends ChangeNotifier {
 
   // Actions
 
-  /// Marque une notification comme lue
-  void markAsRead(String notificationId) {
+  /// Marque une notification comme lue via l'API
+  Future<void> markAsRead(String notificationId) async {
     final index = _notifications.indexWhere((notif) => notif.id == notificationId);
     if (index != -1 && !_notifications[index].isRead) {
+      // Mise à jour optimiste
       _notifications[index] = _notifications[index].copyWith(isRead: true);
       notifyListeners();
+
+      try {
+        await ApiService.markNotificationAsRead(notificationId);
+      } catch (e) {
+        // Rollback en cas d'erreur
+        _notifications[index] = _notifications[index].copyWith(isRead: false);
+        _error = e.toString();
+        notifyListeners();
+      }
     }
   }
 
@@ -74,10 +112,47 @@ class NotificationProvider extends ChangeNotifier {
     }
   }
 
-  /// Supprime une notification
-  void deleteNotification(String notificationId) {
-    _notifications.removeWhere((notif) => notif.id == notificationId);
+  /// Supprime une notification via l'API
+  Future<void> deleteNotification(String notificationId) async {
+    final index = _notifications.indexWhere((notif) => notif.id == notificationId);
+    if (index == -1) return;
+
+    // Sauvegarder pour rollback
+    final deletedNotification = _notifications[index];
+    
+    // Suppression optimiste
+    _notifications.removeAt(index);
     notifyListeners();
+
+    try {
+      await ApiService.deleteNotification(notificationId);
+    } catch (e) {
+      // Rollback en cas d'erreur
+      _notifications.insert(index, deletedNotification);
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Supprime toutes les notifications
+  Future<void> clearAllNotifications() async {
+    final notificationsCopy = List<NotificationModel>.from(_notifications);
+    
+    // Suppression optimiste
+    _notifications.clear();
+    notifyListeners();
+
+    try {
+      // Supprimer toutes les notifications via l'API
+      for (final notification in notificationsCopy) {
+        await ApiService.deleteNotification(notification.id);
+      }
+    } catch (e) {
+      // Rollback en cas d'erreur
+      _notifications = notificationsCopy;
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
   /// Applique un filtre par type de notification
@@ -164,13 +239,6 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   // Méthodes privées
-
-  /// Génère les notifications mockées au démarrage
-  void _generateMockNotifications() {
-    _notifications = List.from(MockNotificationsData.notifications);
-    // Trier par timestamp décroissant (plus récent en premier)
-    _notifications.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-  }
 
   /// Sauvegarde les paramètres de notifications dans shared_preferences
   Future<void> _saveSettings() async {

@@ -1,0 +1,15 @@
+{
+  "name": "tableronde-backend",
+  "version": "1.0.0",
+  "description": "Serveur JSON pour simuler le backend de TableRonde",
+  "scripts": {
+    "start": "json-server --watch db.json --port 3000 --host 0.0.0.0",
+    "start:delay": "json-server --watch db.json --port 3000 --host 0.0.0.0 --delay 500"
+  },
+  "keywords": ["json-server", "mock", "backend"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "json-server": "^0.17.4"
+  }
+}

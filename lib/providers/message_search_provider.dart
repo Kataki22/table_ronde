@@ -115,7 +115,10 @@ class MessageSearchProvider extends ChangeNotifier {
       final index = normalizedText.indexOf(normalizedQuery, startIndex);
       if (index == -1) break;
       
-      ranges.add(TextRange(index, index + query.length));
+      ranges.add(TextRange(
+        start: index,
+        end: index + query.length,
+      ));
       startIndex = index + query.length;
     }
     

@@ -1,6 +1,7 @@
 import '../models/profiles/user_profile_model.dart';
 import '../models/profiles/user_activity.dart';
 import '../models/profiles/user_post.dart';
+import '../utils/avatar_helper.dart';
 
 /// Données mockées pour les profils utilisateurs
 /// Contient 25 profils complets avec activités et posts
@@ -143,7 +144,7 @@ class MockProfilesData {
         username: '@tkporky',
         bio: 'Backend Developer | Node.js & Firebase expert | Coffee addict ☕',
         phone: '+33 6 34 56 78 90',
-        avatarUrl: 'assets/images/Avatar3.png',
+        avatarUrl: AvatarHelper.getRandomAvatar(),
         createdAt: _now.subtract(const Duration(days: 280)),
         isOnline: false,
         currentActivity: null,
@@ -188,7 +189,7 @@ class MockProfilesData {
         username: '@sophiemartin',
         bio: 'Product Manager @ TableRonde | Passionnée par l\'innovation | Marathon runner 🏃‍♀️',
         phone: '+33 6 45 67 89 01',
-        avatarUrl: 'assets/images/Avatar4.png',
+        avatarUrl: AvatarHelper.getRandomAvatar(),
         createdAt: _now.subtract(const Duration(days: 400)),
         isOnline: true,
         currentActivity: 'En appel',
@@ -239,7 +240,7 @@ class MockProfilesData {
         username: '@lucasdubois',
         bio: 'QA Engineer | Bug hunter 🐛 | Automation enthusiast | Gamer 🎮',
         phone: '+33 6 56 78 90 12',
-        avatarUrl: 'assets/images/Avatar5.png',
+        avatarUrl: AvatarHelper.getRandomAvatar(),
         createdAt: _now.subtract(const Duration(days: 250)),
         isOnline: false,
         currentActivity: null,
@@ -276,7 +277,7 @@ class MockProfilesData {
         username: '@progamer42',
         bio: 'Pro Gamer & Streamer 🎮 | FPS specialist | Twitch Partner',
         phone: '+33 6 67 89 01 23',
-        avatarUrl: 'assets/images/Avatar6.png',
+        avatarUrl: AvatarHelper.getRandomAvatar(),
         createdAt: _now.subtract(const Duration(days: 450)),
         isOnline: true,
         currentActivity: 'En stream',
@@ -321,7 +322,7 @@ class MockProfilesData {
         username: '@ninjakiller',
         bio: 'Competitive gamer | Team captain | Ninja main 🥷',
         phone: '+33 6 78 90 12 34',
-        avatarUrl: 'assets/images/Avatar7.png',
+        avatarUrl: AvatarHelper.getRandomAvatar(),
         createdAt: _now.subtract(const Duration(days: 380)),
         isOnline: true,
         currentActivity: 'En partie',
@@ -358,7 +359,7 @@ class MockProfilesData {
         username: '@emmaleroy',
         bio: 'Graphic Designer | Illustratrice freelance | Cat lover 🐱',
         phone: '+33 6 89 01 23 45',
-        avatarUrl: 'assets/images/Avatar8.png',
+        avatarUrl: AvatarHelper.getRandomAvatar(),
         createdAt: _now.subtract(const Duration(days: 290)),
         isOnline: false,
         currentActivity: null,
@@ -406,7 +407,7 @@ class MockProfilesData {
         username: '@maxpower',
         bio: 'Personal Trainer | Nutrition coach | Transformation specialist 💪',
         phone: '+33 6 90 12 34 56',
-        avatarUrl: 'assets/images/Avatar9.png',
+        avatarUrl: AvatarHelper.getRandomAvatar(),
         createdAt: _now.subtract(const Duration(days: 340)),
         isOnline: true,
         currentActivity: 'À la salle',

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../utils/app_theme.dart';
 import '../../../utils/theme_extensions.dart';
 import '../../../utils/user_manager.dart';
+import '../../../services/auth_service.dart';
 
 class AccountSettings extends StatefulWidget {
   const AccountSettings({super.key});
@@ -30,6 +31,88 @@ class _AccountSettingsState extends State<AccountSettings> {
           _username = userData['username'] ?? 'user';
           _email = userData['email'] ?? '';
         });
+      }
+    }
+  }
+
+  Future<void> _handleLogout() async {
+    // Afficher une boîte de dialogue de confirmation
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: context.themeColors.bgSurface,
+        title: Text(
+          'Se déconnecter',
+          style: TextStyle(color: context.themeColors.textPrimary),
+        ),
+        content: Text(
+          'Êtes-vous sûr de vouloir vous déconnecter ?',
+          style: TextStyle(color: context.themeColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Annuler',
+              style: TextStyle(color: context.themeColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Se déconnecter',
+              style: TextStyle(color: context.themeColors.colorDanger),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      try {
+        // Afficher un indicateur de chargement
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: CircularProgressIndicator(
+              color: context.themeColors.colorPrimary,
+            ),
+          ),
+        );
+
+        // Déconnecter l'utilisateur
+        await AuthService.logout();
+
+        // Nettoyer les données locales
+        await UserManager().logout();
+
+        if (mounted) {
+          // Fermer l'indicateur de chargement
+          Navigator.of(context).pop();
+
+          // Fermer le dialogue de paramètres
+          Navigator.of(context).pop();
+
+          // Naviguer vers l'écran de connexion
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/login',
+            (route) => false,
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          // Fermer l'indicateur de chargement
+          Navigator.of(context).pop();
+
+          // Afficher un message d'erreur
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur lors de la déconnexion: $e'),
+              backgroundColor: context.themeColors.colorDanger,
+            ),
+          );
+        }
       }
     }
   }
@@ -208,6 +291,43 @@ class _AccountSettingsState extends State<AccountSettings> {
                 ],
               ),
             ),
+
+            const SizedBox(height: 24),
+
+            // Bouton de déconnexion
+            Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: context.themeColors.bgSurface,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: InkWell(
+                onTap: _handleLogout,
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.logout,
+                        color: context.themeColors.colorDanger,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Se déconnecter',
+                        style: TextStyle(
+                          color: context.themeColors.colorDanger,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 40), // Bottom padding
           ],
         ),

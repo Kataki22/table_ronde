@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../models/media/media_item.dart';
 import '../models/media/media_type.dart';
-import '../data/mock_media_data.dart';
+import '../services/api_service.dart';
 
 /// Provider pour la galerie de médias
 /// Gère l'affichage et le téléchargement des médias partagés
@@ -27,11 +27,15 @@ class MediaGalleryProvider extends ChangeNotifier {
   /// Random number generator for simulating download failures
   final Random _random = Random();
   
-  /// Whether the provider has been initialized
-  bool _isInitialized = false;
+  /// Loading and error states
+  bool _isLoading = false;
+  String? _error;
 
-  /// Get initialization status
-  bool get isInitialized => _isInitialized;
+  /// Get loading status
+  bool get isLoading => _isLoading;
+  
+  /// Get error message
+  String? get error => _error;
   
   /// Get the currently selected tab
   MediaType get selectedTab => _selectedTab;
@@ -45,19 +49,23 @@ class MediaGalleryProvider extends ChangeNotifier {
   /// Check if a media item is currently being downloaded
   bool isDownloading(String mediaId) => _downloadingMedia.contains(mediaId);
 
-  /// Initialize the provider and load mock data
-  Future<void> initialize() async {
-    if (_isInitialized) return;
-    
-    // Simulate network delay
-    await Future.delayed(const Duration(milliseconds: 150));
-    
-    // Load mock data
-    _mediaByChat.clear();
-    _mediaByChat.addAll(MockMediaData.mediaByChat);
-    
-    _isInitialized = true;
+  /// Charge les médias pour un chat spécifique depuis l'API
+  Future<void> loadMediaForChat(String chatId) async {
+    _isLoading = true;
+    _error = null;
     notifyListeners();
+
+    try {
+      final mediaItems = await ApiService.getMediaByChat(chatId);
+      _mediaByChat[chatId] = mediaItems;
+      
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   /// Get all media items for a specific chat filtered by type
@@ -65,7 +73,7 @@ class MediaGalleryProvider extends ChangeNotifier {
   List<MediaItem> getMediaForChat(String chatId, MediaType type) {
     final allMedia = _mediaByChat[chatId] ?? [];
     return allMedia.where((item) => item.type == type).toList()
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Most recent first
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp)); // Most recent first (descending)
   }
 
   /// Get all photos for a specific chat
@@ -104,6 +112,60 @@ class MediaGalleryProvider extends ChangeNotifier {
     if (_selectedTab != type) {
       _selectedTab = type;
       notifyListeners();
+    }
+  }
+
+  /// Upload un nouveau média via l'API
+  Future<MediaItem> uploadMedia(String chatId, MediaItem media) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final uploadedMedia = await ApiService.uploadMedia(media);
+      
+      // Ajouter le média au cache local
+      if (!_mediaByChat.containsKey(chatId)) {
+        _mediaByChat[chatId] = [];
+      }
+      _mediaByChat[chatId]!.add(uploadedMedia);
+      
+      // Trier par timestamp décroissant
+      _mediaByChat[chatId]!.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      _isLoading = false;
+      notifyListeners();
+      
+      return uploadedMedia;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Supprime un média via l'API
+  Future<void> deleteMedia(String mediaId, String chatId) async {
+    // Sauvegarder pour rollback
+    final mediaList = _mediaByChat[chatId];
+    final index = mediaList?.indexWhere((m) => m.id == mediaId) ?? -1;
+    final deletedMedia = index != -1 ? mediaList![index] : null;
+    
+    if (deletedMedia == null) return;
+
+    // Suppression optimiste
+    mediaList!.removeAt(index);
+    notifyListeners();
+
+    try {
+      await ApiService.deleteMedia(mediaId);
+    } catch (e) {
+      // Rollback en cas d'erreur
+      mediaList.insert(index, deletedMedia);
+      _error = e.toString();
+      notifyListeners();
+      rethrow;
     }
   }
 
@@ -242,7 +304,8 @@ class MediaGalleryProvider extends ChangeNotifier {
     _currentMediaItem = null;
     _currentGallery = [];
     _downloadingMedia.clear();
-    _isInitialized = false;
+    _isLoading = false;
+    _error = null;
     notifyListeners();
   }
 }

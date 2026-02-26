@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../utils/app_theme.dart';
@@ -8,10 +7,11 @@ import '../widgets/home/home_right_sidebar.dart';
 import '../widgets/home/home_feed.dart';
 import '../widgets/home/home_top_bar.dart';
 import '../widgets/home/announcements_feed.dart';
-import '../widgets/home/create_post_dialog.dart';
 import '../widgets/home/members_list.dart';
 import '../widgets/home/activities_feed.dart';
+import '../widgets/feed/advanced_create_post_widget.dart';
 import '../providers/notification_provider.dart';
+import '../providers/feed_provider.dart';
 import '../widgets/notifications/badge_counter.dart';
 import '../screens/notifications/notification_center_screen.dart';
 
@@ -25,42 +25,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _subPageIndex = 0;
 
-  final List<Map<String, dynamic>> _feedPosts = [
-    {
-      'author': 'T4zor',
-      'username': '@t4zor',
-      'avatar': 'T4',
-      'time': '2h',
-      'content': 'Il me dit f*ck you mdr.',
-      'imageUrl': 'assets/images/test.png',
-      'likes': 24,
-      'comments': 8,
-      'type': 'gaming',
-    },
-    {
-      'author': 'Tk-Porky',
-      'username': '@tkporky',
-      'avatar': 'Tk',
-      'time': '4h',
-      'content': 'Seigneur.💔🙌 !!',
-      'imageUrl': 'assets/images/test2.png',
-      'likes': 45,
-      'comments': 12,
-      'type': 'Social',
-    },
-    {
-      'author': 'AlistairJr',
-      'username': '@alistairjr',
-      'avatar': 'A',
-      'time': '6h',
-      'content':
-          'Nouveau record ! Je suis maintenant #1 du classement Quiz Battle 🎮🏆',
-      'imageUrl': null,
-      'likes': 67,
-      'comments': 23,
-      'type': 'gaming',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Charger les posts depuis l'API au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FeedProvider>().loadPosts();
+    });
+  }
 
   final List<Map<String, dynamic>> _announcements = [
     {
@@ -99,24 +71,74 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   void _showCreatePostDialog() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => CreatePostDialog(
-        onPostCreated: (content, File? image) {
-          setState(() {
-            _feedPosts.insert(0, {
-              'author': 'Vous',
-              'username': '@vous',
-              'avatar': 'V',
-              'time': 'À l\'instant',
-              'content': content,
-              'imageUrl': image,
-              'likes': 0,
-              'comments': 0,
-              'type': 'social',
-            });
-          });
-        },
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.9,
+        decoration: BoxDecoration(
+          color: context.themeColors.bgPrimary,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          children: [
+            // Handle pour glisser
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: context.themeColors.textSecondary.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // En-tête
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Text(
+                    'Créer un post',
+                    style: AppTheme.headingSmall.copyWith(
+                      color: context.themeColors.textPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Widget de création avancé
+            Expanded(
+              child: SingleChildScrollView(
+                child: AdvancedCreatePostWidget(
+                  onPostCreated: () {
+                    Navigator.pop(context);
+                    // Le FeedProvider se charge automatiquement de la mise à jour
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Post créé avec succès !'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  },
+                  placeholder: 'Partagez quelque chose d\'intéressant...',
+                  enableScheduling: true,
+                  enablePolls: true,
+                  enableDrafts: true,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -246,7 +268,133 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBody() {
     switch (_subPageIndex) {
       case 0:
-        return HomeFeed(posts: _feedPosts);
+        // Feed avec données depuis l'API via FeedProvider
+        return Consumer<FeedProvider>(
+          builder: (context, feedProvider, _) {
+            // Afficher CircularProgressIndicator pendant isLoading et liste vide
+            if (feedProvider.isLoading && feedProvider.posts.isEmpty) {
+              return Center(
+                child: CircularProgressIndicator(
+                  color: context.themeColors.colorPrimary,
+                ),
+              );
+            }
+
+            // Afficher message d'erreur avec bouton "Réessayer" si erreur et liste vide
+            if (feedProvider.error != null && feedProvider.posts.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: context.themeColors.colorDanger,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur de chargement',
+                      style: AppTheme.headingSmall.copyWith(
+                        color: context.themeColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      feedProvider.error!,
+                      style: AppTheme.bodyMedium.copyWith(
+                        color: context.themeColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () => feedProvider.loadPosts(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: context.themeColors.colorPrimary,
+                        foregroundColor: context.themeColors.textInverse,
+                      ),
+                      child: const Text('Réessayer'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Afficher snackbar si erreur et données existantes
+            if (feedProvider.error != null && feedProvider.posts.isNotEmpty) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(feedProvider.error!),
+                    backgroundColor: context.themeColors.colorDanger,
+                    action: SnackBarAction(
+                      label: 'Réessayer',
+                      textColor: Colors.white,
+                      onPressed: () => feedProvider.loadPosts(),
+                    ),
+                  ),
+                );
+              });
+            }
+
+            // Implémenter RefreshIndicator pour pull-to-refresh
+            return RefreshIndicator(
+              onRefresh: feedProvider.refreshPosts,
+              color: context.themeColors.colorPrimary,
+              child: Stack(
+                children: [
+                  HomeFeed(posts: feedProvider.posts),
+                  // Afficher indicateur si isLoading et données existantes
+                  if (feedProvider.isLoading && feedProvider.posts.isNotEmpty)
+                    Positioned(
+                      top: 16,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: context.themeColors.bgSurface,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: context.themeColors.colorPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Chargement...',
+                                style: AppTheme.bodySmall.copyWith(
+                                  color: context.themeColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        );
       case 1:
         return AnnouncementsFeed(announcements: _announcements);
       case 2:
@@ -254,7 +402,18 @@ class _HomeScreenState extends State<HomeScreen> {
       case 3:
         return const ActivitiesFeed();
       default:
-        return HomeFeed(posts: _feedPosts);
+        return Consumer<FeedProvider>(
+          builder: (context, feedProvider, _) {
+            if (feedProvider.isLoading && feedProvider.posts.isEmpty) {
+              return Center(
+                child: CircularProgressIndicator(
+                  color: context.themeColors.colorPrimary,
+                ),
+              );
+            }
+            return HomeFeed(posts: feedProvider.posts);
+          },
+        );
     }
   }
 }

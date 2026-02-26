@@ -77,7 +77,6 @@ class _ScaleTapWidgetState extends State<_ScaleTapWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  bool _isPressed = false;
 
   @override
   void initState() {
@@ -102,17 +101,14 @@ class _ScaleTapWidgetState extends State<_ScaleTapWidget>
   }
 
   void _handleTapDown(TapDownDetails details) {
-    setState(() => _isPressed = true);
     _controller.forward();
   }
 
   void _handleTapUp(TapUpDetails details) {
-    setState(() => _isPressed = false);
     _controller.reverse();
   }
 
   void _handleTapCancel() {
-    setState(() => _isPressed = false);
     _controller.reverse();
   }
 
@@ -163,7 +159,7 @@ class _ScaleTapWidgetState extends State<_ScaleTapWidget>
 ///   }
 /// }
 /// ```
-mixin InteractiveFeedbackMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin {
+mixin InteractiveFeedbackMixin on TickerProviderStateMixin {
   late AnimationController _feedbackController;
   late Animation<double> _scaleAnimation;
   bool _isHovered = false;

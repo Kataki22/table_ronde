@@ -5,6 +5,7 @@ import '../../utils/theme_extensions.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_theme_data.dart';
 import '../../utils/responsive_layout.dart';
+import '../../utils/avatar_helper.dart';
 
 /// Screen pour créer un nouveau groupe de discussion
 ///
@@ -36,13 +37,13 @@ class _GroupCreationScreenState extends State<GroupCreationScreen> {
   // Mock users disponibles pour sélection
   final List<_MockUser> _availableUsers = [
     _MockUser('user_2', 'T4zor', 'assets/images/Avatar2.png'),
-    _MockUser('user_3', 'Tk-Porky', 'assets/images/Avatar3.png'),
-    _MockUser('user_4', 'Sophie Martin', 'assets/images/Avatar4.png'),
-    _MockUser('user_5', 'Lucas Dubois', 'assets/images/Avatar5.png'),
-    _MockUser('user_6', 'ProGamer42', 'assets/images/Avatar6.png'),
-    _MockUser('user_7', 'NinjaKiller', 'assets/images/Avatar7.png'),
-    _MockUser('user_8', 'Emma Leroy', 'assets/images/Avatar8.png'),
-    _MockUser('user_9', 'MaxPower', 'assets/images/Avatar9.png'),
+    _MockUser('user_3', 'Tk-Porky', AvatarHelper.getRandomAvatar()),
+    _MockUser('user_4', 'Sophie Martin', AvatarHelper.getRandomAvatar()),
+    _MockUser('user_5', 'Lucas Dubois', AvatarHelper.getRandomAvatar()),
+    _MockUser('user_6', 'ProGamer42', AvatarHelper.getRandomAvatar()),
+    _MockUser('user_7', 'NinjaKiller', AvatarHelper.getRandomAvatar()),
+    _MockUser('user_8', 'Emma Leroy', AvatarHelper.getRandomAvatar()),
+    _MockUser('user_9', 'MaxPower', AvatarHelper.getRandomAvatar()),
     _MockUser('user_10', 'Julie Bernard', 'assets/images/Avatar1.png'),
   ];
 
@@ -286,7 +287,7 @@ class _GroupCreationScreenState extends State<GroupCreationScreen> {
             child: _photoUrl != null
                 ? ClipOval(
                     child: Image.asset(
-                      'assets/images/groups/flutter_team.png',
+                      'assets/images/test.png',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Icon(
@@ -348,7 +349,7 @@ class _GroupCreationScreenState extends State<GroupCreationScreen> {
         onTap: () {
           // Simuler la sélection d'une photo
           setState(() {
-            _photoUrl = 'assets/images/groups/custom_${DateTime.now().millisecondsSinceEpoch}.png';
+            _photoUrl = 'assets/images/test.png';
           });
         },
         child: Container(
@@ -365,7 +366,7 @@ class _GroupCreationScreenState extends State<GroupCreationScreen> {
           child: _photoUrl != null
               ? ClipOval(
                   child: Image.asset(
-                    'assets/images/groups/flutter_team.png', // Fallback image
+                    'assets/images/test.png', // Fallback image
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Icon(
